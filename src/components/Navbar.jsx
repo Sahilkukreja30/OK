@@ -1,0 +1,127 @@
+import React, { useState, useEffect } from 'react';
+import './Navbar.css';
+
+export default function Navbar({ isLightMode }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const whatsappUrl = "https://wa.me/919111110422?text=HELLO%2C%20I%20WOULD%20LIKE%20TO%20KNOW%20MORE%20ABOUT%20YOUR%20SERVICES!";
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 30) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const toggleMenu = () => setMobileMenuOpen(!mobileMenuOpen);
+  const closeMenu = () => setMobileMenuOpen(false);
+
+  return (
+    <>
+      <header className={`navbar-wrapper ${isScrolled ? 'is-scrolled' : 'is-transparent'} ${isLightMode ? 'theme-light' : ''}`}>
+        <div className="navbar-container">
+          {/* Top Left Text Logo */}
+          <a href="#" className="logo">
+            CITYREACH
+          </a>
+
+          {/* Desktop Navigation Group */}
+          <nav className="nav-desktop-group">
+            {/* Main Links: Centered on hero, smoothly slides right on scroll */}
+            <div className="nav-main-links">
+              <a href="#home" className="nav-btn">
+                HOME
+              </a>
+              <a href="#services" className="nav-btn">
+                SERVICES
+              </a>
+              <a href="#work" className="nav-btn">
+                OUR WORK
+              </a>
+            </div>
+
+            {/* Contact Us: Stays on the right, opens WhatsApp on PC */}
+            <div className="nav-right-anchor">
+              <a 
+                href={whatsappUrl} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="nav-btn nav-contact-btn"
+              >
+                CONTACT US
+              </a>
+            </div>
+          </nav>
+
+          {/* Mobile: 2-Strip Hamburger on Top Right */}
+          <div className="mobile-toggle-wrapper">
+            <button
+              className={`hamburger-icon ${mobileMenuOpen ? 'open' : ''}`}
+              onClick={toggleMenu}
+              aria-label="Toggle Navigation"
+            >
+              <span className="ham-line"></span>
+              <span className="ham-line"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Phone: Smooth Sidebar with Buttons Dropping in One-by-One from Right */}
+      <div 
+        className={`mobile-sidebar-backdrop ${mobileMenuOpen ? 'active' : ''}`} 
+        onClick={closeMenu} 
+      />
+      <aside className={`mobile-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <span className="sidebar-logo">CITYREACH</span>
+          <button className="sidebar-close-btn" onClick={closeMenu} aria-label="Close Menu">
+            ✕
+          </button>
+        </div>
+
+        <nav className="sidebar-nav-list">
+          <a 
+            href="#home" 
+            className="sidebar-link item-1" 
+            onClick={closeMenu}
+          >
+            HOME
+          </a>
+          <a 
+            href="#services" 
+            className="sidebar-link item-2" 
+            onClick={closeMenu}
+          >
+            SERVICES
+          </a>
+          <a 
+            href="#work" 
+            className="sidebar-link item-3" 
+            onClick={closeMenu}
+          >
+            OUR WORK
+          </a>
+          <a 
+            href={whatsappUrl} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="sidebar-link item-4" 
+            onClick={() => {
+              setTimeout(closeMenu, 150);
+            }}
+          >
+            CONTACT US
+          </a>
+        </nav>
+      </aside>
+    </>
+  );
+}

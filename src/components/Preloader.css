@@ -1,0 +1,61 @@
+/* ==========================================================================
+   CITYREACH 1.1s PRELOADER
+   - Pure Black Background (#000000)
+   - Minimalist, shortened text in Pure White (#ffffff)
+   - Disappears after exactly 1.1 seconds
+   ========================================================================== */
+
+.preloader-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  z-index: 9999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: all;
+}
+
+.preloader-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preloader-content {
+  text-align: center;
+}
+
+/* Minimalist, shortened font size with refined wide tracking */
+.preloader-brand {
+  font-family: 'Inter', sans-serif !important;
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
+  font-weight: 300;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0;
+  user-select: none;
+  animation: preloaderMinimalPulse 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes preloaderMinimalPulse {
+  0% {
+    opacity: 0;
+    letter-spacing: 0.48em;
+  }
+  35% {
+    opacity: 1;
+    letter-spacing: 0.38em;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+  }
+}

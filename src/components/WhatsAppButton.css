@@ -1,0 +1,48 @@
+/* ==========================================================================
+   PHONE WHATSAPP HOVER BUTTON
+   - Black & White only
+   - Only visible on Phone / Mobile screens
+   ========================================================================== */
+
+.whatsapp-phone-btn {
+  display: none; /* Hidden on PC / Desktop */
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 99998;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.2s ease,
+              color 0.2s ease;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.whatsapp-phone-btn:hover,
+.whatsapp-phone-btn:active {
+  background-color: #ffffff;
+  color: #000000;
+  transform: scale(1.08);
+}
+
+.whatsapp-icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+/* Display only on phone/mobile viewports */
+@media (max-width: 768px) {
+  .whatsapp-phone-btn {
+    display: flex;
+  }
+}

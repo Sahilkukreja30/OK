@@ -1,0 +1,510 @@
+/* ==========================================================================
+   CITYREACH BRANDS WE'VE WORKED WITH (4X4 CLIENT WALL)
+   - Minimalist centered headline matching WHO ARE WE & OUR SERVICES
+   - Animated perimeter laser & divider laser beams (PC)
+   - Phone optimized: No lasers through logos on mobile
+   - Brand names below logos with hover color/white reveal
+   - NEEDLE FORM pure white visibility
+   ========================================================================== */
+
+.brands-section {
+  position: relative;
+  min-height: auto;
+  padding: clamp(3.5rem, 7vw, 6.5rem) clamp(1.5rem, 5vw, 4rem) clamp(6rem, 10vw, 10rem) clamp(1.5rem, 5vw, 4rem);
+  background-color: transparent;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+.brands-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================================================
+   MINIMALIST CENTERED HEADLINE
+   - Same minimalism guidelines as WHO ARE WE? and OUR SERVICES
+   - Clean scroll reveal animation
+   ========================================================================== */
+
+.brands-headline-wrap {
+  text-align: center;
+  margin: 0 auto clamp(2.8rem, 5.5vw, 4.5rem) auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brands-headline-wrap.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.brands-headline {
+  font-family: 'Inter', sans-serif !important;
+  font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-align: center;
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* Lightning Strip Below Heading */
+.headline-reveal-laser {
+  height: 1px;
+  width: 0;
+  margin-top: 1.15rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 25%,
+    #ffffff 50%,
+    rgba(255, 255, 255, 0.3) 75%,
+    transparent 100%
+  );
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.85),
+              0 0 4px #ffffff;
+  transition: width 1.3s cubic-bezier(0.16, 1, 0.3, 1) 0.3s;
+}
+
+.brands-headline-wrap.is-revealed .headline-reveal-laser {
+  width: clamp(100px, 20vw, 200px);
+}
+
+/* ==========================================================================
+   ANIMATED LASER BORDER FRAME (OUTER PERIMETER)
+   ========================================================================== */
+
+.laser-grid-outer-frame {
+  position: relative;
+  padding: 1px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.85);
+}
+
+.laser-grid-outer-frame::before {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  width: 400%;
+  height: 400%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 65deg,
+    rgba(255, 255, 255, 0.15) 78deg,
+    rgba(255, 255, 255, 0.85) 87deg,
+    #ffffff 90deg,
+    rgba(255, 255, 255, 0.85) 93deg,
+    rgba(255, 255, 255, 0.15) 102deg,
+    transparent 115deg,
+    transparent 360deg
+  );
+  animation: laserPerimeterRotate 8s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes laserPerimeterRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   4X4 CLIENT WALL GRID
+   ========================================================================== */
+
+.brands-wall-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   INTERNAL DIVIDER LASER SWEEP BEAMS (PC)
+   ========================================================================== */
+
+.laser-sweep-beam-h {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 3;
+  animation: laserDividerSweepH 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes laserDividerSweepH {
+  0% {
+    top: 25%;
+    transform: translateX(-140px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  42% {
+    top: 25%;
+    transform: translateX(1150px);
+    opacity: 0;
+  }
+  50% {
+    top: 75%;
+    transform: translateX(-140px);
+    opacity: 0;
+  }
+  62% {
+    opacity: 1;
+  }
+  92% {
+    top: 75%;
+    transform: translateX(1150px);
+    opacity: 0;
+  }
+  100% {
+    top: 75%;
+    transform: translateX(1150px);
+    opacity: 0;
+  }
+}
+
+.laser-sweep-beam-v {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 140px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 3;
+  animation: laserDividerSweepV 8s cubic-bezier(0.4, 0, 0.2, 1) infinite 2s;
+}
+
+@keyframes laserDividerSweepV {
+  0% {
+    left: 25%;
+    transform: translateY(-140px);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  42% {
+    left: 25%;
+    transform: translateY(700px);
+    opacity: 0;
+  }
+  50% {
+    left: 75%;
+    transform: translateY(-140px);
+    opacity: 0;
+  }
+  62% {
+    opacity: 1;
+  }
+  92% {
+    left: 75%;
+    transform: translateY(700px);
+    opacity: 0;
+  }
+  100% {
+    left: 75%;
+    transform: translateY(700px);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   INDIVIDUAL CLIENT GRID CELL
+   ========================================================================== */
+
+.brand-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(125px, 13vw, 165px);
+  padding: clamp(1.2rem, 2vw, 1.8rem) clamp(0.75rem, 1.5vw, 1.25rem) clamp(1rem, 1.6vw, 1.4rem) clamp(0.75rem, 1.5vw, 1.25rem);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: transparent;
+  text-decoration: none;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: background-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.brand-cell.is-clickable {
+  cursor: pointer;
+}
+
+.brand-cell.is-static {
+  cursor: default;
+}
+
+/* Cell Spotlight & Laser Highlight on Hover */
+.cell-spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at center,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.015) 50%,
+    transparent 75%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+.brand-cell:hover {
+  background-color: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.035),
+              0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.brand-cell:hover .cell-spotlight {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   LOGO STAGE & RENDERING
+   ========================================================================== */
+
+.brand-logo-stage {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: clamp(40px, 5.5vw, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(0.7rem, 1.2vw, 1rem);
+}
+
+.brand-logo-img {
+  max-width: clamp(75px, 9.5vw, 120px);
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.72;
+  filter: grayscale(100%) brightness(1.1);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              filter 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* 1. White logos on dark backgrounds (2BLENDS, LOVERSCLUB) */
+.brand-type-white-on-dark .brand-logo-img {
+  filter: brightness(1.15);
+}
+
+.brand-cell:hover .brand-type-white-on-dark .brand-logo-img,
+.brand-type-white-on-dark:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  filter: brightness(1.6) drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* 2. NEEDLE FORM: Pure white */
+.brand-type-white-pure .brand-logo-img {
+  opacity: 0.82;
+  filter: brightness(1.3);
+}
+
+.brand-cell:hover .brand-type-white-pure .brand-logo-img,
+.brand-type-white-pure:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  filter: brightness(1.8) drop-shadow(0 0 10px rgba(255, 255, 255, 0.6));
+}
+
+/* 3. Logos with white background & dark insignia (BCLUB, BILINGUAL, HIDE, TWOSTYLES) */
+.brand-type-invert-white .brand-logo-img {
+  mix-blend-mode: screen;
+  filter: invert(1) contrast(140%) brightness(1.1);
+}
+
+.brand-cell:hover .brand-type-invert-white .brand-logo-img,
+.brand-type-invert-white:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  mix-blend-mode: screen;
+  filter: invert(1) contrast(150%) brightness(1.6) drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+/* 4. Colored badge (FOLD) */
+.brand-type-color-badge .brand-logo-img {
+  mix-blend-mode: screen;
+  filter: grayscale(100%) brightness(1.2);
+}
+
+.brand-cell:hover .brand-type-color-badge .brand-logo-img,
+.brand-type-color-badge:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  mix-blend-mode: screen;
+  filter: grayscale(0%) brightness(1.3) drop-shadow(0 0 8px rgba(255, 255, 255, 0.4));
+}
+
+/* 5. Standard logos: Muted by default, reveals ORIGINAL COLOUR on hover */
+.brand-type-standard .brand-logo-img {
+  filter: grayscale(100%) brightness(1.1);
+}
+
+.brand-cell:hover .brand-type-standard .brand-logo-img,
+.brand-type-standard:hover .brand-logo-img {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.05);
+  filter: grayscale(0%) brightness(1.15) contrast(105%);
+}
+
+/* ==========================================================================
+   BRAND NAME TYPOGRAPHY BELOW LOGO
+   ========================================================================== */
+
+.brand-name-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  text-align: center;
+}
+
+.brand-name-text {
+  font-family: 'Inter', sans-serif !important;
+  font-size: clamp(0.58rem, 0.7vw, 0.68rem);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  opacity: 0.45;
+  line-height: 1.35;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              letter-spacing 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: normal;
+  max-width: 95%;
+}
+
+.brand-cell:hover .brand-name-text {
+  opacity: 0.95;
+  letter-spacing: 0.14em;
+  color: #ffffff;
+}
+
+/* External Link Indicator */
+.brand-link-indicator {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.65rem;
+  color: #ffffff;
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  line-height: 1;
+}
+
+.brand-cell:hover .brand-link-indicator {
+  opacity: 0.85;
+  transform: translate(0, 0);
+}
+
+/* ==========================================================================
+   MOBILE OPTIMIZATION (< 768px)
+   - Lasers hidden from dividing lines so they NEVER cut between logos on phone
+   - Outer laser perimeter frame preserved
+   - 2-column balanced grid
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .brands-section {
+    padding: 2.75rem 1.15rem 5.5rem 1.15rem;
+  }
+
+  .brands-headline-wrap {
+    margin-bottom: 2rem;
+  }
+
+  .brands-headline {
+    font-size: clamp(1.05rem, 4.4vw, 1.35rem);
+  }
+
+  /* HIDE divider laser beams on mobile so they NEVER pass between or across logos */
+  .laser-sweep-beam-h,
+  .laser-sweep-beam-v {
+    display: none !important;
+  }
+
+  .brands-wall-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .brand-cell {
+    min-height: 110px;
+    padding: 1rem 0.65rem 0.95rem 0.65rem;
+  }
+
+  .brand-logo-stage {
+    height: 42px;
+    margin-bottom: 0.55rem;
+  }
+
+  .brand-logo-img {
+    max-width: 95px;
+    opacity: 0.78;
+  }
+
+  .brand-name-text {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    opacity: 0.55;
+  }
+}
+
+/* Tablet (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .brands-wall-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .brand-cell {
+    min-height: 120px;
+    padding: 1.2rem 0.8rem 1rem 0.8rem;
+  }
+}
