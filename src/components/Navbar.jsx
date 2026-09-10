@@ -3,7 +3,7 @@ import { useRouter } from '../router/RouterContext';
 import './Navbar.css';
 
 export default function Navbar({ isLightMode }) {
-  const { routeType, goToHome, goToBlogIndex } = useRouter();
+  const { routeType, goToHome } = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -39,20 +39,14 @@ export default function Navbar({ isLightMode }) {
     }
   };
 
-  const handleBlogClick = (e) => {
-    e.preventDefault();
-    closeMenu();
-    goToBlogIndex();
-  };
-
-  const isBlogActive = routeType === 'blog_list' || routeType === 'blog_detail';
+  const isLight = routeType === 'home' && isLightMode;
 
   return (
     <>
       <header
         className={`navbar-wrapper ${isScrolled ? 'is-scrolled' : 'is-transparent'} ${
-          isLightMode ? 'theme-light' : ''
-        }`}
+          isLight ? 'theme-light' : ''
+        } ${routeType !== 'home' ? 'is-blog-route' : ''}`}
       >
         <div className="navbar-container">
           {/* Top Left Text Logo */}
@@ -80,17 +74,9 @@ export default function Navbar({ isLightMode }) {
               <a href="#work" onClick={handleNavClick('work')} className="nav-btn">
                 OUR WORK
               </a>
-              <a
-                href="/blog"
-                onClick={handleBlogClick}
-                className={`nav-btn ${isBlogActive ? 'active' : ''}`}
-                style={isBlogActive ? { opacity: 1, borderBottom: '1px solid currentColor' } : {}}
-              >
-                BLOG
-              </a>
             </div>
 
-            {/* Contact Us: Stays on the right, opens WhatsApp on PC */}
+            {/* Contact Us: Stays on the right */}
             <div className="nav-right-anchor">
               <a
                 href={whatsappUrl}
@@ -117,7 +103,7 @@ export default function Navbar({ isLightMode }) {
         </div>
       </header>
 
-      {/* Phone: Smooth Sidebar with Buttons Dropping in One-by-One from Right */}
+      {/* Phone: Smooth Sidebar */}
       <div
         className={`mobile-sidebar-backdrop ${mobileMenuOpen ? 'active' : ''}`}
         onClick={closeMenu}
@@ -140,14 +126,11 @@ export default function Navbar({ isLightMode }) {
           <a href="#work" className="sidebar-link item-3" onClick={handleNavClick('work')}>
             OUR WORK
           </a>
-          <a href="/blog" className="sidebar-link item-4" onClick={handleBlogClick}>
-            BLOG
-          </a>
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="sidebar-link item-5"
+            className="sidebar-link item-4"
             onClick={() => {
               setTimeout(closeMenu, 150);
             }}

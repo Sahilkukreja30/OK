@@ -128,6 +128,7 @@ export default function Brands({ onThemeChange }) {
   const [isRevealed, setIsRevealed] = useState(false);
 
   useEffect(() => {
+    const node = sectionRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Enforce pure black theme when Brands section comes into view
@@ -144,13 +145,13 @@ export default function Brands({ onThemeChange }) {
       }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    if (node) {
+      observer.observe(node);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (node) {
+        observer.unobserve(node);
       }
     };
   }, [onThemeChange]);

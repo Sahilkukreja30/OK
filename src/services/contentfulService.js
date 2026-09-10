@@ -5,13 +5,13 @@
  * Strictly live Contentful data only (no dummy blogs).
  */
 
-import { normalizeCountryCode } from './geoService';
+import { normalizeCountryCode } from './geoService.js';
 
-const SPACE_ID = import.meta.env.VITE_CONTENTFUL_SPACE_ID || 'ogzk8tbw9009';
+const SPACE_ID = (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_CONTENTFUL_SPACE_ID) || 'ogzk8tbw9009';
 const ACCESS_TOKEN =
-  import.meta.env.VITE_CONTENTFUL_ACCESS_TOKEN ||
+  (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_CONTENTFUL_ACCESS_TOKEN) ||
   '_ZBwhDg4gmT9wPa15J_LtvkWubxPO8vTF_QBe_I8gvA';
-const ENVIRONMENT = import.meta.env.VITE_CONTENTFUL_ENVIRONMENT || 'master';
+const ENVIRONMENT = (typeof import.meta !== 'undefined' && import.meta?.env?.VITE_CONTENTFUL_ENVIRONMENT) || 'master';
 
 /**
  * Resolves raw Contentful Delivery API items with their included Assets & Entries

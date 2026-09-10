@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { detectUserCountry, setCountryPreference, normalizeCountryCode } from '../services/geoService';
+import { detectUserCountry, normalizeCountryCode } from '../services/geoService';
 
 const RouterContext = createContext(null);
 
@@ -24,32 +24,36 @@ export function parseRoute(pathname) {
   const second = parts[1]?.toLowerCase();
   const third = parts[2]?.toLowerCase();
 
-  // /in or /in/blog or /in/blog/:slug or /in/:slug
+  // /in -> India Home
+  // /in/blog -> India Blog List
+  // /in/blog/:slug or /in/:slug -> India Blog Detail
   if (first === 'in') {
+    if (!second) {
+      return { routeType: 'home', countryCode: 'IN', slug: null, path: '/in' };
+    }
     if (second === 'blog') {
       if (third) {
         return { routeType: 'blog_detail', countryCode: 'IN', slug: parts[2], path: cleanPath };
       }
-      return { routeType: 'blog_list', countryCode: 'IN', slug: null, path: cleanPath };
+      return { routeType: 'blog_list', countryCode: 'IN', slug: null, path: '/in/blog' };
     }
-    if (second) {
-      return { routeType: 'blog_detail', countryCode: 'IN', slug: parts[1], path: cleanPath };
-    }
-    return { routeType: 'blog_list', countryCode: 'IN', slug: null, path: cleanPath };
+    return { routeType: 'blog_detail', countryCode: 'IN', slug: parts[1], path: cleanPath };
   }
 
-  // /ae or /ae/blog or /ae/blog/:slug or /ae/:slug
+  // /ae -> UAE Home
+  // /ae/blog -> UAE Blog List
+  // /ae/blog/:slug or /ae/:slug -> UAE Blog Detail
   if (first === 'ae') {
+    if (!second) {
+      return { routeType: 'home', countryCode: 'AE', slug: null, path: '/ae' };
+    }
     if (second === 'blog') {
       if (third) {
         return { routeType: 'blog_detail', countryCode: 'AE', slug: parts[2], path: cleanPath };
       }
-      return { routeType: 'blog_list', countryCode: 'AE', slug: null, path: cleanPath };
+      return { routeType: 'blog_list', countryCode: 'AE', slug: null, path: '/ae/blog' };
     }
-    if (second) {
-      return { routeType: 'blog_detail', countryCode: 'AE', slug: parts[1], path: cleanPath };
-    }
-    return { routeType: 'blog_list', countryCode: 'AE', slug: null, path: cleanPath };
+    return { routeType: 'blog_detail', countryCode: 'AE', slug: parts[1], path: cleanPath };
   }
 
   // /blog or /blog/:slug
@@ -57,7 +61,7 @@ export function parseRoute(pathname) {
     if (second) {
       return { routeType: 'blog_detail', countryCode: 'ALL', slug: parts[1], path: cleanPath };
     }
-    return { routeType: 'blog_list', countryCode: 'ALL', slug: null, path: cleanPath };
+    return { routeType: 'blog_list', countryCode: 'ALL', slug: null, path: '/blog' };
   }
 
   // Fallback / Unknown -> Default to home
@@ -74,36 +78,6 @@ export function RouterProvider({ children }) {
   const [detectedGeo, setDetectedGeo] = useState({ countryCode: 'ALL', source: 'detecting' });
   const [isGeoReady, setIsGeoReady] = useState(false);
 
-  // Initialize and run geo-location detection
-  useEffect(() => {
-    let isMounted = true;
-    async function initGeo() {
-      const geo = await detectUserCountry();
-      if (isMounted) {
-        setDetectedGeo(geo);
-        setIsGeoReady(true);
-      }
-    }
-    initGeo();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  // Listen to popstate (back/forward browser buttons)
-  useEffect(() => {
-    const handlePopState = () => {
-      setCurrentPath(window.location.pathname);
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  const routeState = parseRoute(currentPath);
-
-  // Determine active country code for the current view
-  const effectiveCountry = routeState.countryCode || detectedGeo.countryCode || 'ALL';
-
   const navigate = useCallback((path, options = {}) => {
     const targetPath = path.startsWith('/') ? path : `/${path}`;
     if (window.location.pathname !== targetPath) {
@@ -119,29 +93,52 @@ export function RouterProvider({ children }) {
     }
   }, []);
 
-  // Switch region manually
-  const switchCountry = useCallback(
-    (newCountryCode) => {
-      const norm = normalizeCountryCode(newCountryCode);
-      setCountryPreference(norm);
-      setDetectedGeo({ countryCode: norm, source: 'user_override' });
+  // Initialize and run geo-location detection
+  useEffect(() => {
+    let isMounted = true;
+    async function initGeo() {
+      const geo = await detectUserCountry();
+      if (isMounted) {
+        setDetectedGeo(geo);
+        setIsGeoReady(true);
 
-      let newPath = '/blog';
-      if (norm === 'IN') newPath = '/in';
-      if (norm === 'AE') newPath = '/ae';
+        // If user is at root "/" and geo indicates IN or AE, automatically update URL to /in or /ae
+        if (window.location.pathname === '/' || window.location.pathname === '') {
+          if (geo.countryCode === 'IN') {
+            navigate('/in', { replace: true, keepScroll: true });
+          } else if (geo.countryCode === 'AE') {
+            navigate('/ae', { replace: true, keepScroll: true });
+          }
+        }
+      }
+    }
+    initGeo();
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
-      navigate(newPath);
-    },
-    [navigate]
-  );
+  // Listen to popstate (back/forward browser buttons)
+  useEffect(() => {
+    const handlePopState = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
-  // Navigate to blog index respecting geo detection
+  const routeState = parseRoute(currentPath);
+
+  // Determine active country code for the current view
+  const effectiveCountry = routeState.countryCode || detectedGeo.countryCode || 'ALL';
+
+  // Navigate to blog index respecting geo detection / active country
   const goToBlogIndex = useCallback(() => {
     const targetCode = normalizeCountryCode(effectiveCountry);
     if (targetCode === 'IN') {
-      navigate('/in');
+      navigate('/in/blog');
     } else if (targetCode === 'AE') {
-      navigate('/ae');
+      navigate('/ae/blog');
     } else {
       navigate('/blog');
     }
@@ -162,10 +159,15 @@ export function RouterProvider({ children }) {
     [effectiveCountry, navigate]
   );
 
-  // Navigate to Home
+  // Navigate to Home respecting active country
   const goToHome = useCallback(
     (hash = null) => {
-      navigate('/');
+      const targetCode = normalizeCountryCode(effectiveCountry);
+      let homePath = '/';
+      if (targetCode === 'IN') homePath = '/in';
+      else if (targetCode === 'AE') homePath = '/ae';
+
+      navigate(homePath);
       if (hash) {
         setTimeout(() => {
           const el = document.getElementById(hash.replace('#', ''));
@@ -175,7 +177,7 @@ export function RouterProvider({ children }) {
         }, 80);
       }
     },
-    [navigate]
+    [effectiveCountry, navigate]
   );
 
   const value = {
@@ -186,7 +188,6 @@ export function RouterProvider({ children }) {
     detectedGeo,
     isGeoReady,
     navigate,
-    switchCountry,
     goToBlogIndex,
     goToBlogPost,
     goToHome

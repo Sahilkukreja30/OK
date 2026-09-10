@@ -51,6 +51,7 @@ export default function Services({ onThemeChange }) {
   const sectionRef = useRef(null);
 
   useEffect(() => {
+    const node = sectionRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Turns whole site white when inside Services section, and back to black when leaving
@@ -64,13 +65,13 @@ export default function Services({ onThemeChange }) {
       }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
+    if (node) {
+      observer.observe(node);
     }
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
+      if (node) {
+        observer.unobserve(node);
       }
     };
   }, [onThemeChange]);

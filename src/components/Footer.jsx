@@ -11,6 +11,7 @@ export default function Footer({ onThemeChange }) {
   const instagramUrl = 'https://instagram.com/cityreachdigital';
 
   useEffect(() => {
+    const node = footerRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (onThemeChange) {
@@ -29,13 +30,13 @@ export default function Footer({ onThemeChange }) {
       }
     );
 
-    if (footerRef.current) {
-      observer.observe(footerRef.current);
+    if (node) {
+      observer.observe(node);
     }
 
     return () => {
-      if (footerRef.current) {
-        observer.unobserve(footerRef.current);
+      if (node) {
+        observer.unobserve(node);
       }
     };
   }, [onThemeChange]);
@@ -56,6 +57,8 @@ export default function Footer({ onThemeChange }) {
     e.preventDefault();
     goToBlogIndex();
   };
+
+  const isBlogActive = routeType === 'blog_list' || routeType === 'blog_detail';
 
   return (
     <footer ref={footerRef} id="contact" className="site-footer">
@@ -127,7 +130,7 @@ export default function Footer({ onThemeChange }) {
             </div>
           </div>
 
-          {/* Right Column: Quick Links */}
+          {/* Right Column: Quick Links (with BLOGS included) */}
           <div className="footer-links-column">
             <h3 className="footer-col-heading">QUICK LINKS</h3>
             <nav className="footer-nav">
@@ -140,8 +143,12 @@ export default function Footer({ onThemeChange }) {
               <a href="#work" onClick={handleScrollTo('work')} className="footer-nav-link">
                 OUR WORK
               </a>
-              <a href="/blog" onClick={handleBlogClick} className="footer-nav-link">
-                BLOG
+              <a
+                href="/blog"
+                onClick={handleBlogClick}
+                className={`footer-nav-link ${isBlogActive ? 'active' : ''}`}
+              >
+                BLOGS
               </a>
               <a
                 href={whatsappUrl}

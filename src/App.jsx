@@ -16,13 +16,16 @@ function MainAppContent() {
   const { routeType } = useRouter();
   const [isLightMode, setIsLightMode] = useState(false);
 
+  // Active light mode is only valid when on the home page
+  const activeLightMode = routeType === 'home' && isLightMode;
+
   return (
-    <div className={`site-wrapper ${isLightMode ? 'theme-light' : ''}`}>
+    <div className={`site-wrapper ${activeLightMode ? 'theme-light' : ''}`}>
       {/* 1.1s Preloader: CITYREACH in white on black */}
       <Preloader />
 
       {/* Glassmorphic Navbar: Adapts smoothly to global Black & White transitions */}
-      <Navbar isLightMode={isLightMode} />
+      <Navbar isLightMode={activeLightMode} />
 
       {/* Floating Black & White WhatsApp Button for Phone */}
       <WhatsAppButton />
@@ -34,7 +37,7 @@ function MainAppContent() {
           <Hero />
 
           {/* Unified Content Curtain Layer: Transforms globally as user scrolls */}
-          <div className={`content-curtain-layer ${isLightMode ? 'theme-light' : ''}`}>
+          <div className={`content-curtain-layer ${activeLightMode ? 'theme-light' : ''}`}>
             {/* Section 01: Who Are We (Black) */}
             <Promise />
 
@@ -54,7 +57,7 @@ function MainAppContent() {
           <Footer onThemeChange={() => {}} />
         </div>
       ) : (
-        /* Blog List (for /in, /ae, /blog) */
+        /* Blog List (for /in/blog, /ae/blog, /blog, /in, /ae) */
         <div className="blog-route-wrapper">
           <BlogList />
           <Footer onThemeChange={() => {}} />

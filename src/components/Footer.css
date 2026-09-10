@@ -3,7 +3,7 @@
    - Zero split color: Inherits background & color from unified curtain canvas
    - Transforms the entire website smoothly from Black to White on scroll
    - Left: CITYREACH logo, CONNECT WITH US, minimalist Instagram & WhatsApp icons
-   - Right: QUICK LINKS matching Navbar (HOME, SERVICES, OUR WORK, CONTACT US)
+   - Right: QUICK LINKS (HOME, SERVICES, OUR WORK, BLOGS, CONTACT US)
    - Inter font only, luxury monochrome aesthetic
    ========================================================================== */
 
@@ -74,7 +74,7 @@
   margin-bottom: 1rem;
 }
 
-/* Icon-Only Social Row: Instagram & WhatsApp Logos (No circles) */
+/* Icon-Only Social Row: Instagram & WhatsApp Logos */
 .footer-social-icons-row {
   display: flex;
   align-items: center;
@@ -166,6 +166,14 @@
 }
 
 .footer-nav-link:hover::after {
+  width: 100%;
+}
+
+.footer-nav-link.active {
+  opacity: 1;
+}
+
+.footer-nav-link.active::after {
   width: 100%;
 }
 
