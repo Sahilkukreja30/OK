@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RouterProvider, useRouter } from './router/RouterContext';
 import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -7,9 +8,12 @@ import Services from './components/Services';
 import Brands from './components/Brands';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
+import BlogList from './components/BlogList';
+import BlogPostDetail from './components/BlogPostDetail';
 import './App.css';
 
-export default function App() {
+function MainAppContent() {
+  const { routeType } = useRouter();
   const [isLightMode, setIsLightMode] = useState(false);
 
   return (
@@ -19,27 +23,51 @@ export default function App() {
 
       {/* Glassmorphic Navbar: Adapts smoothly to global Black & White transitions */}
       <Navbar isLightMode={isLightMode} />
-      
-      {/* Fixed Hero Stage: Video stays anchored in place */}
-      <Hero />
 
       {/* Floating Black & White WhatsApp Button for Phone */}
       <WhatsAppButton />
 
-      {/* Unified Content Curtain Layer: Transforms globally as user scrolls */}
-      <div className={`content-curtain-layer ${isLightMode ? 'theme-light' : ''}`}>
-        {/* Section 01: Who Are We (Black) */}
-        <Promise />
+      {/* Render based on current Route */}
+      {routeType === 'home' ? (
+        <>
+          {/* Fixed Hero Stage: Video stays anchored in place */}
+          <Hero />
 
-        {/* Section 02: Our Services (Transforms whole website from Black to White) */}
-        <Services onThemeChange={setIsLightMode} />
+          {/* Unified Content Curtain Layer: Transforms globally as user scrolls */}
+          <div className={`content-curtain-layer ${isLightMode ? 'theme-light' : ''}`}>
+            {/* Section 01: Who Are We (Black) */}
+            <Promise />
 
-        {/* Section 03: Brands We've Worked With (Transforms website back to Black) */}
-        <Brands onThemeChange={setIsLightMode} />
+            {/* Section 02: Our Services (Transforms whole website from Black to White) */}
+            <Services onThemeChange={setIsLightMode} />
 
-        {/* Section 04: Footer (Transforms website to White again) */}
-        <Footer onThemeChange={setIsLightMode} />
-      </div>
+            {/* Section 03: Brands We've Worked With (Transforms website back to Black) */}
+            <Brands onThemeChange={setIsLightMode} />
+
+            {/* Section 04: Footer (Transforms website to White again) */}
+            <Footer onThemeChange={setIsLightMode} />
+          </div>
+        </>
+      ) : routeType === 'blog_detail' ? (
+        <div className="blog-route-wrapper">
+          <BlogPostDetail />
+          <Footer onThemeChange={() => {}} />
+        </div>
+      ) : (
+        /* Blog List (for /in, /ae, /blog) */
+        <div className="blog-route-wrapper">
+          <BlogList />
+          <Footer onThemeChange={() => {}} />
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <RouterProvider>
+      <MainAppContent />
+    </RouterProvider>
   );
 }

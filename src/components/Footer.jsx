@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { useRouter } from '../router/RouterContext';
 import './Footer.css';
 
 export default function Footer({ onThemeChange }) {
+  const { routeType, goToHome, goToBlogIndex } = useRouter();
   const footerRef = useRef(null);
 
   const whatsappUrl =
@@ -40,10 +42,19 @@ export default function Footer({ onThemeChange }) {
 
   const handleScrollTo = (id) => (e) => {
     e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (routeType === 'home') {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else {
+      goToHome(id);
     }
+  };
+
+  const handleBlogClick = (e) => {
+    e.preventDefault();
+    goToBlogIndex();
   };
 
   return (
@@ -53,13 +64,25 @@ export default function Footer({ onThemeChange }) {
         <div className="footer-main-grid">
           {/* Left Column: Brand Logo & Connect With Us */}
           <div className="footer-brand-column">
-            <a href="#home" onClick={handleScrollTo('home')} className="footer-logo">
+            <a
+              href="#home"
+              onClick={(e) => {
+                e.preventDefault();
+                if (routeType === 'home') {
+                  const el = document.getElementById('home');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                  goToHome('home');
+                }
+              }}
+              className="footer-logo"
+            >
               CITYREACH
             </a>
 
             <div className="footer-connect-block">
               <span className="footer-connect-label">CONNECT WITH US</span>
-              {/* Only the Logos for Instagram and WhatsApp (No usernames or numbers) */}
+              {/* Logos for Instagram and WhatsApp */}
               <div className="footer-social-icons-row">
                 {/* Instagram Icon */}
                 <a
@@ -116,6 +139,9 @@ export default function Footer({ onThemeChange }) {
               </a>
               <a href="#work" onClick={handleScrollTo('work')} className="footer-nav-link">
                 OUR WORK
+              </a>
+              <a href="/blog" onClick={handleBlogClick} className="footer-nav-link">
+                BLOG
               </a>
               <a
                 href={whatsappUrl}

@@ -29,3 +29,12 @@
 .site-wrapper.theme-light {
   background-color: #ffffff;
 }
+
+.blog-route-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  z-index: 10;
+}
