@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { whatsappLink } from '../config/contact';
 import './Services.css';
 
 const servicesData = [
@@ -82,7 +83,7 @@ export default function Services({ onThemeChange }) {
 
   const getWhatsAppUrl = (title) => {
     const msg = `HELLO, I WOULD LIKE TO START A PROJECT REGARDING ${title}!`;
-    return `https://wa.me/919111110422?text=${encodeURIComponent(msg)}`;
+    return whatsappLink(msg);
   };
 
   return (

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { RouterProvider, useRouter } from './router/RouterContext';
 import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Promise from './components/Promise';
 import Services from './components/Services';
+import CaseStudies from './components/CaseStudies';
 import Brands from './components/Brands';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
@@ -12,12 +13,23 @@ import BlogList from './components/BlogList';
 import BlogPostDetail from './components/BlogPostDetail';
 import './App.css';
 
+// Loaded on demand so visitors never download the dashboard code.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
+
 function MainAppContent() {
   const { routeType } = useRouter();
   const [isLightMode, setIsLightMode] = useState(false);
 
   // Active light mode is only valid when on the home page
   const activeLightMode = routeType === 'home' && isLightMode;
+
+  if (routeType === 'admin') {
+    return (
+      <Suspense fallback={null}>
+        <AdminApp />
+      </Suspense>
+    );
+  }
 
   return (
     <div className={`site-wrapper ${activeLightMode ? 'theme-light' : ''}`}>
@@ -44,10 +56,13 @@ function MainAppContent() {
             {/* Section 02: Our Services (Transforms whole website from Black to White) */}
             <Services onThemeChange={setIsLightMode} />
 
-            {/* Section 03: Brands We've Worked With (Transforms website back to Black) */}
+            {/* Section 03: Case Studies - top projects (managed from /admin, hidden until one exists) */}
+            <CaseStudies />
+
+            {/* Section 04: Brands We've Worked With (Transforms website back to Black) */}
             <Brands onThemeChange={setIsLightMode} />
 
-            {/* Section 04: Footer (Transforms website to White again) */}
+            {/* Section 05: Footer (Transforms website to White again) */}
             <Footer onThemeChange={setIsLightMode} />
           </div>
         </>

@@ -359,6 +359,10 @@
   animation: dropInFromRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.54s forwards;
 }
 
+.mobile-sidebar.open .item-5 {
+  animation: dropInFromRight 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.67s forwards;
+}
+
 /* Responsive Rules for Mobile */
 @media (max-width: 768px) {
   .nav-desktop-group {
