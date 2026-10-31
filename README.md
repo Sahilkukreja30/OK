@@ -29,7 +29,7 @@ Entries can be **published** (live) or saved as **draft**. Images are compressed
 
 ### Deploying (Vercel)
 
-1. **Storage:** Vercel → project → *Storage* → *Create* → **Blob** (choose **Public**) → connect it to this project. Vercel adds `BLOB_READ_WRITE_TOKEN` automatically.
+1. **Storage:** Vercel → project → **Storage** (left sidebar) → *Create Storage* → **Blob** → *Continue* → access **Public** (it can't be changed later) → *Create a new Blob store*, keeping **Production** ticked. Vercel adds `BLOB_STORE_ID` and `BLOB_READ_WRITE_TOKEN` to the project automatically.
 2. **Environment variables** (Production): `ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET` (a separate random string, e.g. `openssl rand -base64 32`) and optionally `SITE_URL`. See `.env.example`.
 3. **Redeploy** (variables only apply to new deployments), then open `/admin`.
 

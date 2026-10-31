@@ -19,6 +19,7 @@ before(async () => {
   dataDir = await mkdtemp(path.join(tmpdir(), 'cityreach-test-'));
   Object.assign(process.env, { ADMIN_PASSWORD: 'pw', LOCAL_DATA_DIR: dataDir });
   delete process.env.BLOB_READ_WRITE_TOKEN;
+  delete process.env.BLOB_STORE_ID;
   delete process.env.VERCEL;
   token = createSessionToken().token;
 });
