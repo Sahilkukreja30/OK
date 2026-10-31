@@ -96,6 +96,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.admin-banner p { margin: 0 0 0.9rem; }
 .admin-banner.is-success { border-color: #ffffff; }
 .admin-banner.is-warning,
 .admin-banner.is-error { border-color: #ff6b6b; color: #ffb3b3; }

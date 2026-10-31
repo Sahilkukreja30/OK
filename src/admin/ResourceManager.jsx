@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { listEntries } from './adminApi';
+import { missingDefaultLogos } from '../data/defaultClientLogos';
+import { importDefaultLogos } from './importDefaultLogos';
 import ResourceForm from './ResourceForm';
 
 const formatDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** Optional one-click helpers per resource: { label, hint, pending(rows) -> count, run(rows, onProgress) -> count }. */
+const RESOURCE_IMPORTS = {
+  logo: {
+    label: 'IMPORT CURRENT WEBSITE LOGOS',
+    hint: 'The site is still showing its built-in logos. Import them here to change their links or add new ones next to them.',
+    pending: (rows) => missingDefaultLogos(rows.map((row) => row.title)).length,
+    run: (rows, onProgress) => importDefaultLogos(rows.map((row) => row.title), onProgress)
+  }
+};
 
 /** List of entries for one resource, plus the create / edit form. Remount (key) to switch resource. */
 export default function ResourceManager({ resource }) {
@@ -11,6 +23,7 @@ export default function ResourceManager({ resource }) {
   const [notice, setNotice] = useState('');
   const [loadError, setLoadError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
+  const [importProgress, setImportProgress] = useState(null); // null = idle, else { done, total }
 
   useEffect(() => {
     let isMounted = true;
@@ -34,6 +47,23 @@ export default function ResourceManager({ resource }) {
     setReloadCount((count) => count + 1);
   };
 
+  const importer = RESOURCE_IMPORTS[resource.key];
+
+  const runImport = async () => {
+    setNotice('');
+    setLoadError('');
+    setImportProgress({ done: 0, total: importer.pending(rows) });
+    try {
+      const count = await importer.run(rows, (done, total) => setImportProgress({ done, total }));
+      setNotice(`Imported ${count} logo${count === 1 ? '' : 's'}. Open any of them to edit its link.`);
+    } catch (error) {
+      setLoadError(`${error.message} Imported logos are kept – press the button again to continue.`);
+    }
+    setImportProgress(null);
+    setRows(null);
+    setReloadCount((count) => count + 1);
+  };
+
   if (editing) {
     return <ResourceForm key={editing.id ?? 'new'} resource={resource} entryId={editing.id} onClose={() => setEditing(null)} onSaved={handleSaved} />;
   }
@@ -46,6 +76,15 @@ export default function ResourceManager({ resource }) {
           + NEW {resource.singular.toUpperCase()}
         </button>
       </div>
+
+      {importer && rows && importer.pending(rows) > 0 && (
+        <div className="admin-banner">
+          <p>{importer.hint}</p>
+          <button type="button" className="admin-btn admin-btn-outline" disabled={Boolean(importProgress)} onClick={runImport}>
+            {importProgress ? `IMPORTING ${importProgress.done}/${importProgress.total}…` : `${importer.label} (${importer.pending(rows)})`}
+          </button>
+        </div>
+      )}
 
       {notice && <p className="admin-banner is-success" role="status">{notice}</p>}
       {loadError && <p className="admin-banner is-error" role="alert">{loadError}</p>}

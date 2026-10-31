@@ -123,3 +123,11 @@ export const DEFAULT_CLIENT_LOGOS = [
     type: 'standard'
   }
 ];
+
+const normalize = (name) => name.trim().toLowerCase();
+
+/** The built-in logos that are not in the CMS yet (matched by name, ignoring case and spacing). */
+export function missingDefaultLogos(existingNames) {
+  const present = new Set(existingNames.map(normalize));
+  return DEFAULT_CLIENT_LOGOS.filter((logo) => !present.has(normalize(logo.name)));
+}
