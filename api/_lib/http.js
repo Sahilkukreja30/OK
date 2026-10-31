@@ -12,7 +12,7 @@ export function handle(methods, { open = false } = {}) {
       if (!run) throw new HttpError(405, `${req.method} is not allowed here.`);
       if (!open) requireAdmin(req);
 
-      const result = await run(req);
+      const result = await run(req, res);
       res.status(200).json(result ?? { ok: true });
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500;

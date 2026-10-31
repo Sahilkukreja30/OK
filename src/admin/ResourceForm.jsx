@@ -4,19 +4,15 @@ import { ApiError, deleteEntry, getEntry, saveEntry } from './adminApi';
 import FieldRenderer from './fields';
 import { slugify } from './slugify';
 
-const LIVE_STATUSES = ['published', 'changed'];
-
 /** The main fields first, then each linked entry (e.g. SEO) under its own heading. */
 const fieldGroups = (resource) => [
-  { entry: 'main', title: null },
-  ...Object.entries(resource.linked ?? {}).map(([entry, link]) => ({ entry, title: link.title }))
+  { group: 'main', title: null },
+  ...Object.entries(resource.groups ?? {}).map(([group, { title }]) => ({ group, title }))
 ];
 
 export default function ResourceForm({ resource, entryId, onClose, onSaved }) {
   const [values, setValues] = useState(() => emptyValues(resource));
-  const [assetUrls, setAssetUrls] = useState({});
   const [status, setStatus] = useState('draft');
-  const [isEditable, setIsEditable] = useState(true);
   const [isLoading, setIsLoading] = useState(Boolean(entryId));
   const [busyAction, setBusyAction] = useState(null);
   const [errors, setErrors] = useState({});
@@ -29,9 +25,7 @@ export default function ResourceForm({ resource, entryId, onClose, onSaved }) {
       .then((entry) => {
         if (!isMounted) return;
         setValues({ ...emptyValues(resource), ...entry.values });
-        setAssetUrls(entry.assetUrls ?? {});
         setStatus(entry.status);
-        setIsEditable(entry.editable);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -65,16 +59,9 @@ export default function ResourceForm({ resource, entryId, onClose, onSaved }) {
     [entryId, resource]
   );
 
-  const formContext = useMemo(
-    () => ({
-      altText: values[resource.titleKey],
-      assetUrls,
-      rememberAsset: (id, url) => setAssetUrls((previous) => ({ ...previous, [id]: url }))
-    }),
-    [values, resource.titleKey, assetUrls]
-  );
+  const formContext = useMemo(() => ({ altText: values[resource.titleKey] }), [values, resource.titleKey]);
 
-  const isLive = LIVE_STATUSES.includes(status);
+  const isLive = status === 'published';
 
   const save = async (publish) => {
     const clientErrors = validateValues(resource, values);
@@ -124,18 +111,11 @@ export default function ResourceForm({ resource, entryId, onClose, onSaved }) {
         {entryId && <span className={`admin-status is-${status}`}>{status}</span>}
       </div>
 
-      {!isEditable && (
-        <p className="admin-banner is-warning">
-          This article uses formatting (tables or underline) that the editor can’t show. Saving here would remove it, so please edit it in
-          Contentful instead.
-        </p>
-      )}
-
-      {fieldGroups(resource).map(({ entry, title }) => {
-        const fields = fieldsOf(resource, entry);
+      {fieldGroups(resource).map(({ group, title }) => {
+        const fields = fieldsOf(resource, group);
         if (!fields.length) return null;
         return (
-          <fieldset key={entry} className="admin-group">
+          <fieldset key={group} className="admin-group">
             {title && <legend className="admin-group-title">{title}</legend>}
             {fields.map((field) => (
               <FieldRenderer
@@ -154,10 +134,10 @@ export default function ResourceForm({ resource, entryId, onClose, onSaved }) {
       {message && <p className={`admin-banner ${Object.keys(errors).length ? 'is-error' : ''}`} role="alert">{message}</p>}
 
       <div className="admin-actions">
-        <button type="button" className="admin-btn admin-btn-solid" disabled={isBusy || !isEditable} onClick={() => save(true)}>
+        <button type="button" className="admin-btn admin-btn-solid" disabled={isBusy} onClick={() => save(true)}>
           {busyAction === 'publish' ? 'PUBLISHING…' : isLive ? 'UPDATE LIVE' : 'PUBLISH'}
         </button>
-        <button type="button" className="admin-btn admin-btn-outline" disabled={isBusy || !isEditable} onClick={() => save(false)}>
+        <button type="button" className="admin-btn admin-btn-outline" disabled={isBusy} onClick={() => save(false)}>
           {busyAction === 'draft' ? 'SAVING…' : isLive ? 'UNPUBLISH & SAVE DRAFT' : 'SAVE DRAFT'}
         </button>
         {entryId && (

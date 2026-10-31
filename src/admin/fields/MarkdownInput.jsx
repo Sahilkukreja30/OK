@@ -6,19 +6,7 @@ import { uploadImageFile } from '../imageUpload';
 
 const BODY_IMAGE_WIDTH = 1400;
 
-/** Swaps asset ids for loaded urls so the preview matches the live page. */
-function withPreviewAssets(document, assetUrls) {
-  return {
-    ...document,
-    content: document.content.map((node) => {
-      if (node.nodeType !== 'embedded-asset-block') return node;
-      const url = assetUrls[node.data.target.sys.id];
-      return url ? { ...node, data: { target: { fields: { file: { url }, title: '' } } } } : { nodeType: 'paragraph', data: {}, content: [] };
-    })
-  };
-}
-
-export default function MarkdownInput({ value, onChange, form }) {
+export default function MarkdownInput({ value, onChange }) {
   const textareaRef = useRef(null);
   const fileRef = useRef(null);
   const [isPreview, setIsPreview] = useState(false);
@@ -47,9 +35,8 @@ export default function MarkdownInput({ value, onChange, form }) {
     setIsUploading(true);
     setUploadError('');
     try {
-      const { id, url } = await uploadImageFile(file, { maxWidth: BODY_IMAGE_WIDTH, title: caption, description: caption });
-      form.rememberAsset(id, url);
-      applyEdit(insertAtCursor(selection(), imageMarkdown(caption || 'image', id)));
+      const { url } = await uploadImageFile(file, { maxWidth: BODY_IMAGE_WIDTH, title: caption, description: caption });
+      applyEdit(insertAtCursor(selection(), imageMarkdown(caption || 'image', url)));
     } catch (error) {
       setUploadError(error.message);
     } finally {
@@ -82,7 +69,7 @@ export default function MarkdownInput({ value, onChange, form }) {
 
       {isPreview ? (
         <div className="admin-preview">
-          <RichTextRenderer document={withPreviewAssets(markdownToRichText(value), form.assetUrls)} />
+          <RichTextRenderer document={markdownToRichText(value)} />
         </div>
       ) : (
         <textarea

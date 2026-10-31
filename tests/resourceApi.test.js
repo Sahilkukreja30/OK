@@ -1,41 +1,37 @@
 import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { after, before, test } from 'node:test';
+import content from '../api/content.js';
+import media from '../api/media.js';
 import resource from '../api/admin/resource.js';
 import upload from '../api/admin/upload.js';
 import sitemap from '../api/sitemap.js';
 import { createSessionToken } from '../api/_lib/auth.js';
-import { startMockContentful } from './mockContentful.js';
 import { call } from './helpers.js';
 
-let mock;
+let dataDir;
 let token;
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGP4z8DwHwAFAAH/q842iQAAAABJRU5ErkJggg==', 'base64');
 
 before(async () => {
-  mock = await startMockContentful();
-  Object.assign(process.env, {
-    ADMIN_PASSWORD: 'pw',
-    CONTENTFUL_SPACE_ID: 'space',
-    CONTENTFUL_MANAGEMENT_TOKEN: 'cma-token',
-    CONTENTFUL_DELIVERY_TOKEN: 'cda-token',
-    CONTENTFUL_MANAGEMENT_BASE: mock.url,
-    CONTENTFUL_UPLOAD_BASE: mock.url,
-    CONTENTFUL_DELIVERY_BASE: mock.url
-  });
+  dataDir = await mkdtemp(path.join(tmpdir(), 'cityreach-test-'));
+  Object.assign(process.env, { ADMIN_PASSWORD: 'pw', LOCAL_DATA_DIR: dataDir });
+  delete process.env.BLOB_READ_WRITE_TOKEN;
+  delete process.env.VERCEL;
   token = createSessionToken().token;
 });
 
-after(() => mock.close());
+after(() => rm(dataDir, { recursive: true, force: true }));
 
 const api = (handler, options) => call(handler, { token, ...options });
+const publicList = (resourceKey, extra = {}) => call(content, { query: { resource: resourceKey, ...extra } });
 
-async function uploadImage(title = 'Banner') {
-  const { status, body } = await api(upload, {
-    method: 'POST',
-    body: { fileName: 'banner.png', contentType: 'image/png', data: PNG.toString('base64'), title }
-  });
-  assert.equal(status, 200, JSON.stringify(body));
-  return body;
+async function uploadImage(data = PNG, fileName = 'Banner Photo.png') {
+  const response = await api(upload, { method: 'POST', body: { fileName, data: data.toString('base64') } });
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  return response.body;
 }
 
 const blogValues = (image, overrides = {}) => ({
@@ -45,7 +41,7 @@ const blogValues = (image, overrides = {}) => ({
   publishedDate: '2026-10-01',
   shortDescription: 'Fast sites convert.',
   featuredImage: image,
-  content: '## Heading\n\nSome **bold** body text.\n\n![shot](asset:SHOT)',
+  content: '## Heading\n\nSome **bold** body text.',
   seoTitle: '',
   seoDescription: '',
   canonicalUrl: '',
@@ -54,107 +50,117 @@ const blogValues = (image, overrides = {}) => ({
   ...overrides
 });
 
-test('uploads an image as a published asset', async () => {
-  const image = await uploadImage();
-  assert.match(image.url, /\/files\//);
-  assert.ok(mock.assets.get(image.id).sys.publishedVersion, 'asset is published');
+test('uploads an image, checks its real type, and serves it back', async () => {
+  const { url } = await uploadImage();
+  assert.match(url, /^\/api\/media\?key=images%2Fbanner-photo-[0-9a-f]{8}\.png$/);
 
-  const rejected = await api(upload, { method: 'POST', body: { fileName: 'x.svg', contentType: 'image/svg+xml', data: 'PHN2Zz4=' } });
-  assert.equal(rejected.status, 415);
+  const served = await call(media, { query: { key: decodeURIComponent(url.split('key=')[1]) } });
+  assert.equal(served.status, 200);
+  assert.deepEqual(Buffer.from(served.body), PNG);
+
+  const notAnImage = await api(upload, { method: 'POST', body: { fileName: 'x.png', data: Buffer.from('<svg onload=alert(1)>').toString('base64') } });
+  assert.equal(notAnImage.status, 415);
+  const lying = await api(upload, { method: 'POST', body: { fileName: 'x.png', contentType: 'image/png', data: Buffer.from('MZ not a png').toString('base64') } });
+  assert.equal(lying.status, 415);
+
+  assert.equal((await call(media, { query: { key: '../../etc/passwd' } })).status, 404);
+  assert.equal((await call(media, { query: { key: 'images/missing.png' } })).status, 404);
 });
 
-test('blog: create (published) -> read -> edit -> unpublish -> delete', async () => {
+test('blog: create (published) -> read -> edit -> draft -> delete', async () => {
   const image = await uploadImage();
-  const bodyImage = await uploadImage('Inline');
-  const values = blogValues(image, { content: `## Heading\n\nSome **bold** body text.\n\n![shot](asset:${bodyImage.id})` });
-
-  const created = await api(resource, { method: 'POST', body: { resource: 'blog', values, publish: true } });
+  const created = await api(resource, { method: 'POST', body: { resource: 'blog', values: blogValues(image), publish: true } });
   assert.equal(created.status, 200, JSON.stringify(created.body));
   assert.equal(created.body.status, 'published');
+  const { id } = created.body;
 
-  // Stored the way the public site expects it.
-  const post = mock.entries.get(created.body.id);
-  assert.equal(post.fields.slug['en-US'], 'why-speed-sells');
-  assert.equal(post.fields.internalName['en-US'], 'Why speed sells');
-  assert.equal(post.fields.content['en-US'].content[0].nodeType, 'heading-2');
-  assert.equal(post.fields.featuredImage['en-US'].sys.id, image.id);
-  const seo = mock.entries.get(post.fields.seoFields['en-US'].sys.id);
-  assert.equal(seo.fields.pageTitle['en-US'], 'Why speed sells', 'SEO title falls back to the post title');
-  assert.equal(seo.fields.pageDescription['en-US'], 'Fast sites convert.');
-  assert.equal(seo.fields.noindex['en-US'], false);
-  assert.ok(seo.sys.publishedVersion, 'linked SEO entry is published with the post');
+  // Visible to visitors: list is lightweight (no body) with a reading time, single post has everything.
+  const list = await publicList('blog');
+  assert.equal(list.body.length, 1);
+  assert.equal(list.body[0].title, 'Why speed sells');
+  assert.equal(list.body[0].content, undefined);
+  assert.equal(list.body[0].readingTime, '1 MIN READ');
+  assert.equal(list.body[0].seoTitle, 'Why speed sells', 'SEO title falls back to the post title');
+  assert.equal(list.body[0].seoDescription, 'Fast sites convert.');
+  const single = await publicList('blog', { slug: 'why-speed-sells' });
+  assert.match(single.body.content, /^## Heading/);
+  assert.equal(single.body.featuredImage.url, image.url);
+  assert.equal((await publicList('blog', { slug: 'nope' })).status, 404);
 
-  // Visible on the public delivery API with links resolved.
-  const cda = await fetch(`${mock.url}/spaces/space/environments/master/entries?content_type=pageBlogPost&include=2&access_token=x`);
-  const delivered = await cda.json();
-  assert.equal(delivered.items.length, 1);
-  assert.equal(delivered.includes.Asset.length, 2);
-  assert.equal(delivered.includes.Entry[0].fields.pageTitle, 'Why speed sells');
-
-  // The editor can load it back.
-  const loaded = await api(resource, { query: { resource: 'blog', id: created.body.id } });
+  // The editor can load it back, exactly as stored.
+  const loaded = await api(resource, { query: { resource: 'blog', id } });
   assert.equal(loaded.body.values.title, 'Why speed sells');
-  assert.equal(loaded.body.values.featuredImage.id, image.id);
   assert.equal(loaded.body.values.seoTitle, 'Why speed sells');
-  assert.match(loaded.body.values.content, /^## Heading/);
-  assert.equal(loaded.body.editable, true);
 
-  // Edit keeps unmanaged fields and clears emptied ones.
-  mock.entries.get(created.body.id).fields.relatedBlogPosts = { 'en-US': [] };
   const edited = await api(resource, {
     method: 'PUT',
-    body: { resource: 'blog', id: created.body.id, publish: true, values: { ...loaded.body.values, title: 'Speed sells more', seoTitle: 'Custom SEO title', shortDescription: '' } }
+    body: { resource: 'blog', id, publish: true, values: { ...loaded.body.values, title: 'Speed sells more', seoTitle: 'Custom SEO title' } }
   });
   assert.equal(edited.status, 200, JSON.stringify(edited.body));
-  const after = mock.entries.get(created.body.id);
-  assert.equal(after.fields.title['en-US'], 'Speed sells more');
-  assert.deepEqual(after.fields.relatedBlogPosts['en-US'], []);
-  assert.equal(after.fields.shortDescription, undefined);
-  assert.equal(mock.entries.get(after.fields.seoFields['en-US'].sys.id).fields.pageTitle['en-US'], 'Custom SEO title');
+  const afterEdit = await publicList('blog', { slug: 'why-speed-sells' });
+  assert.equal(afterEdit.body.title, 'Speed sells more');
+  assert.equal(afterEdit.body.seoTitle, 'Custom SEO title');
 
-  // List shows it, draft toggle takes it off the public API.
-  const list = await api(resource, { query: { resource: 'blog' } });
-  assert.deepEqual(list.body.map((row) => [row.title, row.status]), [['Speed sells more', 'published']]);
-  assert.match(list.body[0].thumbnail, /\/files\//);
+  const rows = await api(resource, { query: { resource: 'blog' } });
+  assert.deepEqual(rows.body.map((row) => [row.title, row.status]), [['Speed sells more', 'published']]);
+  assert.equal(rows.body[0].thumbnail, image.url);
 
-  const draft = await api(resource, { method: 'PUT', body: { resource: 'blog', id: created.body.id, publish: false, values: loaded.body.values } });
+  const draft = await api(resource, { method: 'PUT', body: { resource: 'blog', id, publish: false, values: loaded.body.values } });
   assert.equal(draft.body.status, 'draft');
-  const afterDraft = await (await fetch(`${mock.url}/spaces/space/environments/master/entries?content_type=pageBlogPost&access_token=x`)).json();
-  assert.equal(afterDraft.items.length, 0);
+  assert.deepEqual((await publicList('blog')).body, [], 'drafts are not public');
+  assert.equal((await api(resource, { query: { resource: 'blog' } })).body[0].status, 'draft', 'but the admin still lists them');
 
-  const removed = await api(resource, { method: 'DELETE', query: { resource: 'blog', id: created.body.id } });
-  assert.equal(removed.status, 200);
-  assert.equal(mock.entries.size, 0, 'post and its SEO entry are both deleted');
+  assert.equal((await api(resource, { method: 'DELETE', query: { resource: 'blog', id } })).status, 200);
+  assert.deepEqual((await api(resource, { query: { resource: 'blog' } })).body, []);
+  assert.equal((await api(resource, { method: 'DELETE', query: { resource: 'blog', id } })).status, 404);
 });
 
-test('blog: validation and duplicate slugs are rejected', async () => {
+test('blog: validation, duplicate slugs and unknown fields', async () => {
   const image = await uploadImage();
   const invalid = await api(resource, { method: 'POST', body: { resource: 'blog', publish: true, values: blogValues(image, { title: '', slug: 'Bad Slug' }) } });
   assert.equal(invalid.status, 422);
   assert.ok(invalid.body.details.title && invalid.body.details.slug);
 
-  const first = await api(resource, { method: 'POST', body: { resource: 'blog', publish: false, values: blogValues(image) } });
+  const noImage = await api(resource, { method: 'POST', body: { resource: 'blog', publish: true, values: blogValues(null) } });
+  assert.equal(noImage.status, 422);
+  assert.ok(noImage.body.details.featuredImage);
+
+  const first = await api(resource, { method: 'POST', body: { resource: 'blog', publish: false, values: { ...blogValues(image), evil: '<script>' } } });
   assert.equal(first.status, 200);
+  assert.equal((await api(resource, { query: { resource: 'blog', id: first.body.id } })).body.values.evil, undefined, 'unknown fields are dropped');
+
   const dup = await api(resource, { method: 'POST', body: { resource: 'blog', publish: false, values: blogValues(image) } });
   assert.equal(dup.status, 409);
   assert.ok(dup.body.details.slug);
   await api(resource, { method: 'DELETE', query: { resource: 'blog', id: first.body.id } });
 });
 
-test('logos and case studies are stored with display order and metrics', async () => {
-  const image = await uploadImage('Logo');
-  const logo = await api(resource, {
+test('image urls must point at our storage or the web', async () => {
+  const response = await api(resource, {
     method: 'POST',
-    body: { resource: 'logo', publish: true, values: { name: 'Acme', websiteUrl: 'https://acme.co', logo: image, displayStyle: 'standard', sortOrder: 5 } }
+    body: { resource: 'blog', publish: false, values: blogValues({ url: 'javascript:alert(1)' }, { slug: 'bad-image' }) }
   });
-  assert.equal(logo.status, 200, JSON.stringify(logo.body));
-  assert.equal(mock.entries.get(logo.body.id).fields.sortOrder['en-US'], 5);
+  assert.equal(response.status, 422, 'a non-http image counts as missing');
+});
 
-  const badUrl = await api(resource, {
-    method: 'POST',
-    body: { resource: 'logo', publish: true, values: { name: 'Acme', websiteUrl: 'acme.co', logo: image, displayStyle: 'standard', sortOrder: 5 } }
-  });
+test('logos and case studies: order, metrics and url checks', async () => {
+  const image = await uploadImage();
+  const logo = (name, sortOrder, extra = {}) => ({ name, websiteUrl: 'https://acme.co', logo: image, displayStyle: 'standard', sortOrder, ...extra });
+  for (const [name, order] of [['Second', 2], ['First', 1]]) {
+    const saved = await api(resource, { method: 'POST', body: { resource: 'logo', publish: true, values: logo(name, order) } });
+    assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  }
+  const hidden = await api(resource, { method: 'POST', body: { resource: 'logo', publish: false, values: logo('Draft', 0) } });
+  assert.equal(hidden.status, 200);
+
+  const logos = await publicList('logo');
+  assert.deepEqual(logos.body.map((l) => l.name), ['First', 'Second']);
+  assert.equal(logos.body[0].logo.url, image.url);
+
+  const badUrl = await api(resource, { method: 'POST', body: { resource: 'logo', publish: true, values: logo('Bad', 3, { websiteUrl: 'acme.co' }) } });
   assert.equal(badUrl.status, 422);
+  const noScript = await api(resource, { method: 'POST', body: { resource: 'logo', publish: true, values: logo('Bad', 3, { websiteUrl: 'javascript:alert(1)' }) } });
+  assert.equal(noScript.status, 422);
 
   const study = await api(resource, {
     method: 'POST',
@@ -169,33 +175,31 @@ test('logos and case studies are stored with display order and metrics', async (
     }
   });
   assert.equal(study.status, 200, JSON.stringify(study.body));
-  const stored = mock.entries.get(study.body.id).fields;
-  assert.deepEqual(stored.metrics['en-US'], [{ label: 'ROAS', value: '3.9x' }]);
-  assert.equal(stored.resultSecondary, undefined);
+  assert.deepEqual((await publicList('caseStudy')).body[0].metrics, [{ label: 'ROAS', value: '3.9x' }]);
 
-  const list = await api(resource, { query: { resource: 'caseStudy' } });
-  assert.equal(list.body[0].title, 'Kronos');
   assert.equal((await api(resource, { query: { resource: 'nope' } })).status, 404);
+  assert.equal((await publicList('nope')).status, 404);
+  assert.equal((await call(content, { query: {} })).status, 400);
 });
 
-test('sitemap lists published posts with their country prefix', async () => {
+test('two saves at once both survive', async () => {
   const image = await uploadImage();
-  const created = await api(resource, { method: 'POST', body: { resource: 'blog', publish: true, values: blogValues(image, { slug: 'map-me', country: 'AE' }) } });
-  assert.equal(created.status, 200);
+  const values = (n) => ({ name: `Parallel ${n}`, websiteUrl: '', logo: image, displayStyle: 'standard', sortOrder: 50 + n });
+  const results = await Promise.all([1, 2, 3, 4, 5].map((n) => api(resource, { method: 'POST', body: { resource: 'logo', publish: true, values: values(n) } })));
+  assert.ok(results.every((r) => r.status === 200));
+  const names = (await publicList('logo')).body.map((l) => l.name);
+  for (let n = 1; n <= 5; n += 1) assert.ok(names.includes(`Parallel ${n}`), `Parallel ${n} was lost`);
+});
+
+test('sitemap lists published posts with their country prefix, never drafts', async () => {
+  const image = await uploadImage();
+  const live = await api(resource, { method: 'POST', body: { resource: 'blog', publish: true, values: blogValues(image, { slug: 'map-me', country: 'AE' }) } });
+  await api(resource, { method: 'POST', body: { resource: 'blog', publish: false, values: blogValues(image, { slug: 'secret-draft', title: 'Draft' }) } });
+  assert.equal(live.status, 200);
 
   const response = await call(sitemap, { method: 'GET' });
   assert.equal(response.status, 200);
   assert.match(response.body, /\/ae\/blog\/map-me<\/loc>/);
   assert.match(response.body, /<loc>https:\/\/[^<]*\/blog<\/loc>/);
-});
-
-test('loading a post returns the urls of images embedded in its body', async () => {
-  const image = await uploadImage();
-  const inline = await uploadImage('Inline');
-  const created = await api(resource, {
-    method: 'POST',
-    body: { resource: 'blog', publish: false, values: blogValues(image, { slug: 'with-inline', content: `Hello\n\n![x](asset:${inline.id})` }) }
-  });
-  const loaded = await api(resource, { query: { resource: 'blog', id: created.body.id } });
-  assert.equal(loaded.body.assetUrls[inline.id], inline.url);
+  assert.doesNotMatch(response.body, /secret-draft/);
 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { fetchAllBlogPosts, filterPostsByCountry } from '../services/contentfulService';
+import { fetchAllBlogPosts, filterPostsByCountry } from '../services/contentService';
 import usePageMeta from '../hooks/usePageMeta';
 import './BlogList.css';
 

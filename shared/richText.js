@@ -1,19 +1,19 @@
 /**
- * Markdown <-> Contentful Rich Text.
- * The admin edits a small, predictable markdown subset; Contentful stores the rich-text AST
- * that RichTextRenderer already renders on the public blog.
+ * Markdown -> rich-text document, the shape RichTextRenderer renders on the public blog.
+ * Articles are stored as markdown (what the admin edits) and converted when shown.
  *
  * Supported: # / ## / ### / #### headings, paragraphs, > quotes, - and 1. lists, ---,
- * **bold**, *italic*, `code`, [links](url) and images as ![caption](asset:<assetId>).
+ * **bold**, *italic*, `code`, [links](url) and images as ![caption](https://image-url).
  */
 
 const INLINE_PATTERN = /\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`|\[(.+?)\]\((.+?)\)/;
 const HEADING_PATTERN = /^(#{1,4})\s+(.*)$/;
-const IMAGE_PATTERN = /^!\[(.*?)\]\(asset:([\w-]+)\)$/;
+const IMAGE_PATTERN = /^!\[(.*?)\]\(((?:https?:\/\/|\/)\S+?)\)$/;
 const BULLET_PATTERN = /^[-*]\s+(.*)$/;
 const NUMBERED_PATTERN = /^\d+\.\s+(.*)$/;
 const QUOTE_PATTERN = /^>\s?(.*)$/;
 const RULE_PATTERN = /^(-{3,}|\*{3,})$/;
+const SAFE_LINK_PATTERN = /^(https?:|mailto:|tel:|\/|#)/i;
 
 const text = (value, marks = []) => ({ nodeType: 'text', value, marks, data: {} });
 const block = (nodeType, content, data = {}) => ({ nodeType, data, content });
@@ -35,7 +35,9 @@ function parseInline(source, marks = []) {
     if (bold !== undefined) nodes.push(...parseInline(bold, [...marks, { type: 'bold' }]));
     else if (italic !== undefined) nodes.push(...parseInline(italic, [...marks, { type: 'italic' }]));
     else if (code !== undefined) nodes.push(text(code, [...marks, { type: 'code' }]));
-    else nodes.push(block('hyperlink', parseInline(linkText, marks), { uri }));
+    // Anything that is not a normal web, mail, phone or on-site address (javascript:, data:, …) is shown as plain text.
+    else if (SAFE_LINK_PATTERN.test(uri.trim())) nodes.push(block('hyperlink', parseInline(linkText, marks), { uri: uri.trim() }));
+    else nodes.push(...parseInline(linkText, marks));
 
     rest = rest.slice(match.index + whole.length);
   }
@@ -77,7 +79,7 @@ export function markdownToRichText(markdown = '') {
       content.push(block(`heading-${match[1].length}`, parseInline(match[2])));
       i += 1;
     } else if ((match = IMAGE_PATTERN.exec(line))) {
-      const target = { sys: { type: 'Link', linkType: 'Asset', id: match[2] } };
+      const target = { fields: { file: { url: match[2] }, title: match[1], description: match[1] } };
       content.push(block('embedded-asset-block', [], { target }));
       i += 1;
     } else if (RULE_PATTERN.test(line)) {
@@ -107,58 +109,9 @@ export function markdownToRichText(markdown = '') {
   return { nodeType: 'document', data: {}, content };
 }
 
-const MARK_WRAPPERS = {
-  bold: (value) => `**${value}**`,
-  italic: (value) => `*${value}*`,
-  code: (value) => `\`${value}\``
-};
+const WORDS_PER_MINUTE = 200;
 
-function inlineToMarkdown(nodes = []) {
-  return nodes
-    .map((node) => {
-      if (node.nodeType === 'hyperlink') return `[${inlineToMarkdown(node.content)}](${node.data?.uri || ''})`;
-      if (node.nodeType !== 'text') return inlineToMarkdown(node.content);
-      return (node.marks || []).reduce((value, mark) => MARK_WRAPPERS[mark.type]?.(value) ?? value, node.value);
-    })
-    .join('');
-}
-
-/** Inline text of a block whose children are paragraphs (quote, list item) or inline nodes. */
-const flattenInline = (node) =>
-  inlineToMarkdown((node.content || []).flatMap((child) => (child.nodeType === 'paragraph' ? child.content : [child])));
-
-const BLOCK_SERIALIZERS = {
-  paragraph: (node) => inlineToMarkdown(node.content),
-  blockquote: (node) => `> ${node.content.map(flattenInline).join(' ')}`,
-  hr: () => '---',
-  'embedded-asset-block': (node) => `![image](asset:${node.data?.target?.sys?.id})`,
-  'unordered-list': (node) => node.content.map((item) => `- ${flattenInline(item)}`).join('\n'),
-  'ordered-list': (node) => node.content.map((item, n) => `${n + 1}. ${flattenInline(item)}`).join('\n')
-};
-
-for (let level = 1; level <= 6; level += 1) {
-  BLOCK_SERIALIZERS[`heading-${level}`] = (node) =>
-    `${'#'.repeat(Math.min(level, 4))} ${inlineToMarkdown(node.content)}`;
-}
-
-export function richTextToMarkdown(document) {
-  if (!document?.content) return '';
-  return document.content
-    .map((node) => (BLOCK_SERIALIZERS[node.nodeType] || flattenInline)(node))
-    .join('\n\n');
-}
-
-/** Ids of the assets embedded in a document (used to preview images in the editor). */
-export const embeddedAssetIds = (document) =>
-  (document?.content ?? []).filter((node) => node.nodeType === 'embedded-asset-block').map((node) => node.data.target.sys.id);
-
-/** True when the markdown editor can represent every node without losing content (tables, underline...). */
-export function isEditableAsMarkdown(document) {
-  const supportedMarks = new Set(Object.keys(MARK_WRAPPERS));
-  const isSupported = (node) => {
-    if (node.nodeType === 'text') return (node.marks || []).every((mark) => supportedMarks.has(mark.type));
-    const known = node.nodeType in BLOCK_SERIALIZERS || ['list-item', 'hyperlink'].includes(node.nodeType);
-    return known && (node.content || []).every(isSupported);
-  };
-  return (document?.content || []).every(isSupported);
+export function readingTimeLabel(markdown = '') {
+  const words = markdown.split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.ceil(words / WORDS_PER_MINUTE))} MIN READ`;
 }

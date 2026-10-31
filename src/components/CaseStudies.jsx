@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import useCmsList from '../hooks/useCmsList';
 import useInView from '../hooks/useInView';
-import { fetchCaseStudies } from '../services/contentfulService';
+import { fetchCaseStudies } from '../services/contentService';
 import CaseStudyModal from './CaseStudyModal';
 import './CaseStudies.css';
 

@@ -1,6 +1,6 @@
 import { HttpError } from '../_lib/errors.js';
 import { handle } from '../_lib/http.js';
-import { getResourceEntry, listResource, removeResource, saveResource } from '../_lib/resourceStore.js';
+import { getResourceEntry, listResource, removeResource, saveResource } from '../_lib/contentStore.js';
 
 const requireParam = (value, name) => {
   if (!value) throw new HttpError(400, `Missing "${name}".`);

@@ -12,7 +12,7 @@ const toBase64 = (blob) =>
     reader.readAsDataURL(blob);
   });
 
-const canvasToBlob = (canvas) => new Promise((resolve) => canvas.toBlob(resolve, OUTPUT_TYPE, OUTPUT_QUALITY));
+const canvasToBlob = (canvas, type = OUTPUT_TYPE) => new Promise((resolve) => canvas.toBlob(resolve, type, OUTPUT_QUALITY));
 
 /** Shrinks big photos and converts them to WebP: faster pages, better SEO, under the upload limit. */
 async function compress(file, maxWidth) {
@@ -24,7 +24,9 @@ async function compress(file, maxWidth) {
   canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
   bitmap.close();
 
-  const blob = await canvasToBlob(canvas);
+  let blob = await canvasToBlob(canvas);
+  // Safari cannot encode WebP and hands back a PNG, which can be huge for photos: use JPEG for those.
+  if (blob.type !== OUTPUT_TYPE && blob.size > MAX_UPLOAD_BYTES) blob = await canvasToBlob(canvas, 'image/jpeg');
   return { blob, extension: blob.type === OUTPUT_TYPE ? 'webp' : blob.type.split('/')[1] };
 }
 

@@ -34,4 +34,4 @@ export function insertAtCursor({ value, start, end }, snippet) {
   return { value: value.slice(0, start) + snippet + value.slice(end), start: start + snippet.length, end: start + snippet.length };
 }
 
-export const imageMarkdown = (caption, assetId) => `\n\n![${caption.replace(/[[\]]/g, '')}](asset:${assetId})\n\n`;
+export const imageMarkdown = (caption, url) => `\n\n![${caption.replace(/[[\]]/g, '')}](${url})\n\n`;

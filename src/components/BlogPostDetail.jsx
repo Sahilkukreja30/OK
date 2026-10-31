@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { getBlogPostBySlug } from '../services/contentfulService';
+import { getBlogPostBySlug } from '../services/contentService';
 import usePageMeta from '../hooks/usePageMeta';
 import RichTextRenderer from './RichTextRenderer';
 import './BlogPostDetail.css';

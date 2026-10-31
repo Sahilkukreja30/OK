@@ -1,12 +1,10 @@
 /**
  * Single source of truth for everything the admin can manage.
- * Consumed by the admin forms (what to render), the API (what to validate / how to map to Contentful)
- * and scripts/setup-contentful.js (which content types to create).
+ * Consumed by the admin forms (what to render) and the API (what to validate and store).
  *
  * Field `type`s: text | textarea | select | date | number | boolean | image | markdown | metrics
- * Field `entry`: which Contentful entry the field lives on (default 'main'; 'seo' = linked componentSeo).
- * `contentType.name` is only set for types this project creates itself (see scripts/setup-contentful.js);
- * pageBlogPost / componentSeo already exist in the space.
+ * Field `group`: optional form section the field is shown in (see the resource's `groups`); default is the main form.
+ * `sort`: how entries are ordered on the site and in the admin list.
  */
 
 export const COUNTRY_OPTIONS = [
@@ -25,7 +23,10 @@ export const LOGO_STYLE_OPTIONS = [
 
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const MAX_METRICS = 3;
-export const MAX_SHORT_TEXT = 256; // Contentful "Symbol" fields
+
+/** Uploaded images live in our storage (a web address, or /api/media when running on local files). */
+export const isImageUrl = (url) => /^(https?:\/\/|\/api\/media\?)/.test(url ?? '');
+export const MAX_SHORT_TEXT = 256; // longest allowed single-line text
 
 const sortOrderField = {
   key: 'sortOrder',
@@ -42,16 +43,8 @@ const definitions = {
     singular: 'blog post',
     titleKey: 'title',
     subtitleKey: 'publishedDate',
-    contentType: { id: 'pageBlogPost', internalName: (v) => v.title },
-    linked: {
-      seo: {
-        title: 'SEO – how this appears on Google & social media',
-        contentType: { id: 'componentSeo', internalName: (v) => `SEO - ${v.title}` },
-        linkField: 'seoFields',
-        idKey: 'seoEntryId'
-      }
-    },
-    orderBy: '-fields.publishedDate',
+    groups: { seo: { title: 'SEO – how this appears on Google & social media' } },
+    sort: { key: 'publishedDate', direction: 'desc' },
     uniqueKey: 'slug',
     fields: [
       { key: 'title', type: 'text', label: 'Title (H1)', required: true, maxLength: 100 },
@@ -83,8 +76,7 @@ const definitions = {
       },
       {
         key: 'seoTitle',
-        entry: 'seo',
-        field: 'pageTitle',
+        group: 'seo',
         type: 'text',
         label: 'SEO title',
         maxLength: 60,
@@ -93,8 +85,7 @@ const definitions = {
       },
       {
         key: 'seoDescription',
-        entry: 'seo',
-        field: 'pageDescription',
+        group: 'seo',
         type: 'textarea',
         label: 'SEO meta description',
         maxLength: 160,
@@ -103,14 +94,13 @@ const definitions = {
       },
       {
         key: 'canonicalUrl',
-        entry: 'seo',
-        field: 'canonicalUrl',
+        group: 'seo',
         type: 'text',
         label: 'Canonical URL (optional)',
         hint: 'Only set if the same article is published elsewhere first.'
       },
-      { key: 'noindex', entry: 'seo', field: 'noindex', type: 'boolean', label: 'Hide from search engines (noindex)', defaultValue: false },
-      { key: 'nofollow', entry: 'seo', field: 'nofollow', type: 'boolean', label: 'Do not follow links (nofollow)', defaultValue: false }
+      { key: 'noindex', group: 'seo', type: 'boolean', label: 'Hide from search engines (noindex)', defaultValue: false },
+      { key: 'nofollow', group: 'seo', type: 'boolean', label: 'Do not follow links (nofollow)', defaultValue: false }
     ]
   },
 
@@ -119,12 +109,7 @@ const definitions = {
     singular: 'client logo',
     titleKey: 'name',
     subtitleKey: 'websiteUrl',
-    contentType: {
-      id: 'clientLogo',
-      name: 'Client logo',
-      internalName: (v) => v.name
-    },
-    orderBy: 'fields.sortOrder',
+    sort: { key: 'sortOrder', direction: 'asc' },
     fields: [
       { key: 'name', type: 'text', label: 'Client name', required: true, maxLength: 60 },
       { key: 'websiteUrl', type: 'text', label: 'Website (optional)', hint: 'Full address, e.g. https://client.com – makes the logo clickable.' },
@@ -139,12 +124,7 @@ const definitions = {
     singular: 'case study',
     titleKey: 'title',
     subtitleKey: 'discipline',
-    contentType: {
-      id: 'caseStudy',
-      name: 'Case study',
-      internalName: (v) => v.title
-    },
-    orderBy: 'fields.sortOrder',
+    sort: { key: 'sortOrder', direction: 'asc' },
     fields: [
       { key: 'title', type: 'text', label: 'Project / client name', required: true, maxLength: 80 },
       { key: 'discipline', type: 'text', label: 'Services delivered', required: true, maxLength: 80, hint: 'e.g. Website Development & Meta Ads' },
@@ -171,17 +151,25 @@ export const RESOURCE_KEYS = Object.keys(RESOURCES);
 
 export const getResource = (key) => RESOURCES[key] ?? null;
 
-/** Fields stored on the given entry kind ('main' or a linked key such as 'seo'). */
-export const fieldsOf = (resource, entry = 'main') =>
-  resource.fields.filter((field) => (field.entry ?? 'main') === entry);
+/** Fields in the given form section ('main' or a key of resource.groups such as 'seo'). */
+export const fieldsOf = (resource, group = 'main') => resource.fields.filter((field) => (field.group ?? 'main') === group);
 
-/** The Contentful field id for a form field. */
-export const contentfulFieldId = (field) => field.field ?? field.key;
+/** Orders entries { values, createdAt } the way the resource's `sort` says. */
+export function sortEntries(resource, entries) {
+  const { key, direction } = resource.sort;
+  const factor = direction === 'desc' ? -1 : 1;
+  const valueOf = (entry) => entry.values[key] ?? '';
+  return [...entries].sort((a, b) => {
+    const [x, y] = [valueOf(a), valueOf(b)];
+    if (x === y) return a.createdAt < b.createdAt ? -1 : 1;
+    return (x > y ? 1 : -1) * factor;
+  });
+}
 
 const EMPTY_BY_TYPE = {
   metrics: () => [],
   boolean: () => false,
-  date: () => new Date().toISOString().slice(0, 10)
+  date: () => new Date().toLocaleDateString('en-CA') // today, in the admin's own time zone (YYYY-MM-DD)
 };
 
 export function emptyValues(resource) {
@@ -199,7 +187,9 @@ export function validateValues(resource, values) {
     const value = values[field.key];
     const effective = isBlank(value) && field.fallbackKey ? values[field.fallbackKey] : value;
 
-    if (field.required && isBlank(effective) && !(field.type === 'number' && value === 0)) {
+    const isMissing = field.type === 'image' ? !isImageUrl(effective?.url) : isBlank(effective);
+
+    if (field.required && isMissing && !(field.type === 'number' && value === 0)) {
       errors[field.key] = `${field.label} is required.`;
     } else if (field.pattern && !isBlank(value) && !field.pattern.test(value)) {
       errors[field.key] = `${field.label} may only contain lowercase letters, numbers and dashes.`;

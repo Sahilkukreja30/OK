@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { isEditableAsMarkdown, markdownToRichText, richTextToMarkdown } from '../shared/richText.js';
+import { markdownToRichText, readingTimeLabel } from '../shared/richText.js';
 
 const SAMPLE = [
   '## Why speed matters',
@@ -8,13 +8,13 @@ const SAMPLE = [
   '> Performance is a feature.',
   '- First point\n- Second point',
   '1. Measure\n2. Improve',
-  '![hero](asset:abc123)',
+  '![hero shot](https://cdn.example.com/hero.webp)',
   '---',
   '### Wrap up',
   'Thanks for reading.'
 ].join('\n\n');
 
-test('converts markdown into valid Contentful rich text nodes', () => {
+test('converts markdown into the rich-text nodes the blog renders', () => {
   const { nodeType, content } = markdownToRichText(SAMPLE);
   assert.equal(nodeType, 'document');
   assert.deepEqual(
@@ -25,27 +25,30 @@ test('converts markdown into valid Contentful rich text nodes', () => {
   const paragraph = content[1].content;
   assert.deepEqual(paragraph[1].marks, [{ type: 'bold' }]);
   assert.equal(paragraph.find((n) => n.nodeType === 'hyperlink').data.uri, 'https://example.com/study');
-  assert.equal(content[3].content[0].nodeType, 'list-item');
   assert.equal(content[3].content[0].content[0].nodeType, 'paragraph');
-  assert.equal(content[5].data.target.sys.id, 'abc123');
   assert.ok(content.every((node) => node.data && Array.isArray(node.content)));
 });
 
-test('round-trips through markdown without losing content', () => {
-  const once = richTextToMarkdown(markdownToRichText(SAMPLE));
-  const twice = richTextToMarkdown(markdownToRichText(once));
-  assert.equal(twice, once);
-  assert.match(once, /\*\*convert\*\*/);
-  assert.match(once, /\[the study\]\(https:\/\/example\.com\/study\)/);
-  assert.match(once, /> Performance is a feature\./);
-  assert.match(once, /!\[image\]\(asset:abc123\)/);
+test('images become embedded assets with url and caption', () => {
+  const { content } = markdownToRichText('![A caption](https://cdn.example.com/a.webp)\n\n![local](/api/media?key=images%2Fa.png)');
+  const [remote, local] = content.map((node) => node.data.target.fields);
+  assert.equal(remote.file.url, 'https://cdn.example.com/a.webp');
+  assert.equal(remote.description, 'A caption');
+  assert.equal(local.file.url, '/api/media?key=images%2Fa.png');
 });
 
-test('keeps links inside quotes and list items', () => {
-  const md = '> read [this](https://a.co)\n\n- see [that](https://b.co)';
-  const out = richTextToMarkdown(markdownToRichText(md));
-  assert.match(out, /> read \[this\]\(https:\/\/a\.co\)/);
-  assert.match(out, /- see \[that\]\(https:\/\/b\.co\)/);
+test('unsafe link and image addresses are never turned into links', () => {
+  const doc = markdownToRichText('Click [here](javascript:void) or [data](data:text/html;base64,AAAA) or [ok](https://a.co)\n\n![x](javascript:void)');
+  const [para, second] = doc.content;
+  const links = para.content.filter((n) => n.nodeType === 'hyperlink');
+  assert.deepEqual(links.map((l) => l.data.uri), ['https://a.co']);
+  assert.match(para.content.map((n) => n.value ?? n.content?.[0]?.value ?? '').join(''), /Click here or data or ok/);
+  assert.equal(second.nodeType, 'paragraph', 'a javascript: image is plain text, not an embedded asset');
+});
+
+test('keeps mailto, tel and on-site links', () => {
+  const { content } = markdownToRichText('[mail](mailto:a@b.co) [call](tel:+911) [home](/in) [top](#top)');
+  assert.deepEqual(content[0].content.filter((n) => n.nodeType === 'hyperlink').map((l) => l.data.uri), ['mailto:a@b.co', 'tel:+911', '/in', '#top']);
 });
 
 test('joins wrapped lines into one paragraph and ignores blank input', () => {
@@ -55,11 +58,7 @@ test('joins wrapped lines into one paragraph and ignores blank input', () => {
   assert.deepEqual(markdownToRichText('').content, []);
 });
 
-test('flags documents the markdown editor cannot represent', () => {
-  assert.equal(isEditableAsMarkdown(markdownToRichText(SAMPLE)), true);
-  const withTable = { nodeType: 'document', content: [{ nodeType: 'table', content: [] }] };
-  assert.equal(isEditableAsMarkdown(withTable), false);
-  const underlined = markdownToRichText('hello');
-  underlined.content[0].content[0].marks = [{ type: 'underline' }];
-  assert.equal(isEditableAsMarkdown(underlined), false);
+test('reading time rounds up and is at least one minute', () => {
+  assert.equal(readingTimeLabel(''), '1 MIN READ');
+  assert.equal(readingTimeLabel('word '.repeat(450)), '3 MIN READ');
 });

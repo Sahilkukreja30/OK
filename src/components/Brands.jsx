@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useCmsList from '../hooks/useCmsList';
 import { DEFAULT_CLIENT_LOGOS } from '../data/defaultClientLogos';
-import { fetchClientLogos } from '../services/contentfulService';
+import { fetchClientLogos } from '../services/contentService';
 import './Brands.css';
 
 export default function Brands({ onThemeChange }) {
