@@ -2,8 +2,8 @@ import React from 'react';
 import './RichTextRenderer.css';
 
 /**
- * Pure React Contentful RichText Document Renderer
- * Renders Contentful AST nodes with CITYREACH monochrome luxury styling
+ * Pure React rich-text document renderer
+ * Renders the document nodes made by shared/richText.js with CITYREACH monochrome luxury styling
  */
 export default function RichTextRenderer({ document }) {
   if (!document || !document.content) {

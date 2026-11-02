@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 .env
 .env*
+!.env.example
+
+# Local admin content (blogs, logos, case studies, images) when no Blob store is connected
+.data
