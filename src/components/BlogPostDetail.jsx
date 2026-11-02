@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { getBlogPostBySlug } from '../services/contentfulService';
+import { getBlogPostBySlug } from '../services/contentService';
+import usePageMeta from '../hooks/usePageMeta';
 import RichTextRenderer from './RichTextRenderer';
 import './BlogPostDetail.css';
 
@@ -30,6 +31,37 @@ function calculateReadingTimeDetail(post) {
   }
 }
 
+/** SEO tags for a post: the editor's SEO fields win, with sensible fallbacks. */
+function buildPostMeta(post) {
+  if (!post) return { title: null };
+
+  const { title, shortDescription, publishedDate, featuredImage, seoFields } = post.fields;
+  const seo = seoFields?.fields ?? {};
+  const image = seo.shareImage?.fields?.file?.url || featuredImage?.fields?.file?.url;
+  const description = seo.pageDescription || shortDescription;
+  const canonical = seo.canonicalUrl || `${window.location.origin}${window.location.pathname}`;
+
+  return {
+    title: seo.pageTitle || title,
+    description,
+    image,
+    canonical,
+    noindex: seo.noindex,
+    nofollow: seo.nofollow,
+    type: 'article',
+    jsonLd: {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: title,
+      description,
+      image,
+      datePublished: publishedDate,
+      mainEntityOfPage: canonical,
+      publisher: { '@type': 'Organization', name: 'CITYREACH' }
+    }
+  };
+}
+
 export default function BlogPostDetail() {
   const { slug, countryCode, goToBlogIndex } = useRouter();
   const [post, setPost] = useState(null);
@@ -51,6 +83,8 @@ export default function BlogPostDetail() {
       isMounted = false;
     };
   }, [slug, countryCode]);
+
+  usePageMeta(buildPostMeta(post));
 
   if (isLoading) {
     return (
