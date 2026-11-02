@@ -25,7 +25,7 @@ Sign in with `ADMIN_PASSWORD`.
 | Client logos | Name, website, logo, display style, order | "Brands we've worked with" wall (the built-in logos are used until the first one is added) |
 | Case studies | Project, results, cover image, challenge / solution / scope, up to 3 metrics, order | "Case studies" section (hidden until the first one is added) |
 
-Entries can be **published** (live) or saved as **draft**. Images are compressed to WebP in the browser before upload. On the Client logos tab, **Import current website logos** copies the built-in logos into the admin (with their links and styles) so they can be edited like any other; it can be re-run safely.
+Entries can be **published** (live) or saved as **draft**. Images are compressed to WebP in the browser before upload. On the Client logos tab, **Import current website logos** copies the built-in logos into the admin (with their links and styles) so they can be edited like any other. It saves all of them in one write, so a failure leaves the wall untouched and you can simply press it again.
 
 ### Deploying (Vercel)
 
