@@ -64,4 +64,7 @@ export const deleteEntry = (resource, id) => request('resource', { method: 'DELE
 export const saveEntry = (resource, { id, values, publish }) =>
   request('resource', { method: id ? 'PUT' : 'POST', body: { resource, id, values, publish } });
 
+/** Saves several new entries in one write: all of them or none. */
+export const saveEntries = (resource, items) => request('resource', { method: 'POST', body: { resource, items } });
+
 export const uploadImage = (payload) => request('upload', { method: 'POST', body: payload });

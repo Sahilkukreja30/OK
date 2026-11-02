@@ -183,6 +183,23 @@ test('logos and case studies: order, metrics and url checks', async () => {
   assert.equal((await call(content, { query: {} })).status, 400);
 });
 
+test('batch add saves all of the logos or none of them', async () => {
+  const image = await uploadImage();
+  const item = (name) => ({ publish: true, values: { name, websiteUrl: '', logo: image, displayStyle: 'standard', sortOrder: 70 } });
+
+  const invalid = await api(resource, { method: 'POST', body: { resource: 'logo', items: [item('Batch ok'), { publish: true, values: { name: '' } }] } });
+  assert.equal(invalid.status, 422);
+  assert.ok(!(await publicList('logo')).body.some((l) => l.name === 'Batch ok'), 'one bad item means nothing is saved');
+
+  const saved = await api(resource, { method: 'POST', body: { resource: 'logo', items: [item('Batch A'), item('Batch B')] } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  assert.equal(saved.body.count, 2);
+  const names = (await publicList('logo')).body.map((l) => l.name);
+  assert.ok(names.includes('Batch A') && names.includes('Batch B'));
+
+  assert.equal((await api(resource, { method: 'POST', body: { resource: 'logo', items: [] } })).status, 400);
+});
+
 test('two saves at once both survive', async () => {
   const image = await uploadImage();
   const values = (n) => ({ name: `Parallel ${n}`, websiteUrl: '', logo: image, displayStyle: 'standard', sortOrder: 50 + n });

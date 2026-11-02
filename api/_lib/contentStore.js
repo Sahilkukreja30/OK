@@ -9,6 +9,8 @@ import { storage } from './storage/index.js';
  * status is 'published' (shown on the site) or 'draft'. Fine for the few dozen entries a small site has.
  */
 
+const MAX_BATCH = 100;
+
 const documentKey = (resource) => `content/${resource.key}.json`;
 const trimmed = (value) => (typeof value === 'string' ? value.trim() : value);
 
@@ -49,7 +51,7 @@ function requireResource(key) {
   return resource;
 }
 
-const readEntries = async (resource, options) => (await storage().readJson(documentKey(resource), options)) ?? [];
+const readEntries = async (resource) => (await storage().readJson(documentKey(resource))) ?? [];
 
 /** Runs `change(entries)` -> { entries, result } against the stored document. */
 const updateEntries = (resource, change) =>
@@ -70,7 +72,7 @@ export async function listResource(key) {
   const resource = requireResource(key);
   const thumbnailField = resource.fields.find((field) => field.type === 'image');
 
-  return sortEntries(resource, await readEntries(resource, { fresh: true })).map((entry) => ({
+  return sortEntries(resource, await readEntries(resource)).map((entry) => ({
     id: entry.id,
     status: entry.status,
     title: entry.values[resource.titleKey],
@@ -82,26 +84,33 @@ export async function listResource(key) {
 
 export async function getResourceEntry(key, id) {
   const resource = requireResource(key);
-  const { status, values } = findEntry(await readEntries(resource, { fresh: true }), id);
+  const { status, values } = findEntry(await readEntries(resource), id);
   return { id, status, values };
+}
+
+/** Validates form values and returns what gets stored. */
+function prepare(resource, { values, publish }) {
+  const errors = validateValues(resource, values);
+  if (Object.keys(errors).length) throw new HttpError(422, 'Please fix the highlighted fields.', errors);
+  return { stored: applyFallbacks(resource, normalizeValues(resource, values)), status: publish ? 'published' : 'draft' };
+}
+
+function assertUnique(resource, entries, stored, ownId) {
+  const uniqueField = resource.fields.find((field) => field.key === resource.uniqueKey);
+  if (uniqueField && entries.some((entry) => entry.id !== ownId && entry.values[uniqueField.key] === stored[uniqueField.key])) {
+    throw new HttpError(409, `Another ${resource.singular} already uses this ${uniqueField.label.toLowerCase()}.`, {
+      [uniqueField.key]: 'Already in use.'
+    });
+  }
 }
 
 export async function saveResource(key, { id, values, publish }) {
   const resource = requireResource(key);
-  const errors = validateValues(resource, values);
-  if (Object.keys(errors).length) throw new HttpError(422, 'Please fix the highlighted fields.', errors);
-
-  const stored = applyFallbacks(resource, normalizeValues(resource, values));
-  const status = publish ? 'published' : 'draft';
+  const { stored, status } = prepare(resource, { values, publish });
   const now = new Date().toISOString();
 
   return updateEntries(resource, (entries) => {
-    const uniqueField = resource.fields.find((field) => field.key === resource.uniqueKey);
-    if (uniqueField && entries.some((entry) => entry.id !== id && entry.values[uniqueField.key] === stored[uniqueField.key])) {
-      throw new HttpError(409, `Another ${resource.singular} already uses this ${uniqueField.label.toLowerCase()}.`, {
-        [uniqueField.key]: 'Already in use.'
-      });
-    }
+    assertUnique(resource, entries, stored, id);
 
     if (id) {
       const existing = findEntry(entries, id);
@@ -111,6 +120,21 @@ export async function saveResource(key, { id, values, publish }) {
 
     const entry = { id: randomUUID(), status, createdAt: now, updatedAt: now, values: stored };
     return { entries: [...entries, entry], result: { id: entry.id, status } };
+  });
+}
+
+/** Adds several entries in one write: either all of them are saved or none are. */
+export async function addResources(key, items) {
+  const resource = requireResource(key);
+  if (!Array.isArray(items) || !items.length || items.length > MAX_BATCH) {
+    throw new HttpError(400, `Send between 1 and ${MAX_BATCH} items.`);
+  }
+  const prepared = items.map((item) => prepare(resource, item));
+  const now = new Date().toISOString();
+
+  return updateEntries(resource, (entries) => {
+    const added = prepared.map(({ stored, status }) => ({ id: randomUUID(), status, createdAt: now, updatedAt: now, values: stored }));
+    return { entries: [...entries, ...added], result: { count: added.length } };
   });
 }
 

@@ -1,6 +1,6 @@
 import { HttpError } from '../_lib/errors.js';
 import { handle } from '../_lib/http.js';
-import { getResourceEntry, listResource, removeResource, saveResource } from '../_lib/contentStore.js';
+import { addResources, getResourceEntry, listResource, removeResource, saveResource } from '../_lib/contentStore.js';
 
 const requireParam = (value, name) => {
   if (!value) throw new HttpError(400, `Missing "${name}".`);
@@ -13,11 +13,11 @@ export default handle({
     return query.id ? getResourceEntry(resource, query.id) : listResource(resource);
   },
 
-  POST: ({ body }) =>
-    saveResource(requireParam(body?.resource, 'resource'), {
-      values: requireParam(body?.values, 'values'),
-      publish: Boolean(body.publish)
-    }),
+  POST: ({ body }) => {
+    const resource = requireParam(body?.resource, 'resource');
+    if (body.items) return addResources(resource, body.items);
+    return saveResource(resource, { values: requireParam(body.values, 'values'), publish: Boolean(body.publish) });
+  },
 
   PUT: ({ body }) =>
     saveResource(requireParam(body?.resource, 'resource'), {

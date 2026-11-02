@@ -10,7 +10,7 @@ const formatDate = (iso) => new Date(iso).toLocaleDateString('en-GB', { day: 'nu
 const RESOURCE_IMPORTS = {
   logo: {
     label: 'IMPORT CURRENT WEBSITE LOGOS',
-    hint: 'The site is still showing its built-in logos. Import them here to change their links or add new ones next to them.',
+    hint: 'The site is showing its built-in logos. Import them first: then you can change their links and add new ones. (Adding one before importing would replace the whole wall.)',
     pending: (rows) => missingDefaultLogos(rows.map((row) => row.title)).length,
     run: (rows, onProgress) => importDefaultLogos(rows.map((row) => row.title), onProgress)
   }
@@ -48,6 +48,7 @@ export default function ResourceManager({ resource }) {
   };
 
   const importer = RESOURCE_IMPORTS[resource.key];
+  const needsImport = Boolean(importer && rows && !rows.length && !loadError && importer.pending(rows) > 0);
 
   const runImport = async () => {
     setNotice('');
@@ -57,7 +58,7 @@ export default function ResourceManager({ resource }) {
       const count = await importer.run(rows, (done, total) => setImportProgress({ done, total }));
       setNotice(`Imported ${count} logo${count === 1 ? '' : 's'}. Open any of them to edit its link.`);
     } catch (error) {
-      setLoadError(`${error.message} Imported logos are kept – press the button again to continue.`);
+      setLoadError(`${error.message} Nothing changed on the site – press the button again to retry.`);
     }
     setImportProgress(null);
     setRows(null);
@@ -72,12 +73,12 @@ export default function ResourceManager({ resource }) {
     <section>
       <div className="admin-list-head">
         <h2 className="admin-title">{resource.label}</h2>
-        <button type="button" className="admin-btn admin-btn-solid" onClick={() => setEditing({ id: null })}>
+        <button type="button" className="admin-btn admin-btn-solid" disabled={needsImport} onClick={() => setEditing({ id: null })}>
           + NEW {resource.singular.toUpperCase()}
         </button>
       </div>
 
-      {importer && rows && importer.pending(rows) > 0 && (
+      {(needsImport || importProgress) && (
         <div className="admin-banner">
           <p>{importer.hint}</p>
           <button type="button" className="admin-btn admin-btn-outline" disabled={Boolean(importProgress)} onClick={runImport}>
@@ -91,7 +92,7 @@ export default function ResourceManager({ resource }) {
 
       {rows === null ? (
         <p className="admin-empty">LOADING…</p>
-      ) : rows.length === 0 && !loadError ? (
+      ) : needsImport ? null : rows.length === 0 && !loadError ? (
         <p className="admin-empty">No {resource.label.toLowerCase()} yet. Add the first one.</p>
       ) : (
         <ul className="admin-rows">

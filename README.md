@@ -45,6 +45,6 @@ Every blog post gets its own `<title>`, meta description, canonical URL, robots 
 
 - `shared/` – the single registry of managed content (`resources.js`) and the markdown → rich-text converter. The admin forms and the API validation both read from it: **adding a field means editing one entry there.**
 - `api/` – Vercel serverless functions: `admin/login`, `admin/resource` (list / get / save / delete), `admin/upload`, `content` (public read), `media` (local-files mode only), `sitemap`. `api/_lib` holds auth, the content store and the storage drivers.
-- `api/_lib/storage/` – `blob.js` (Vercel Blob, production) and `local.js` (plain files, dev and tests). `index.js` picks one.
+- `api/_lib/storage/` – `blob.js` (Vercel Blob, production) and `local.js` (plain files, dev and tests). `index.js` picks one. Blob content is never overwritten: each save is a new version file, because the Blob CDN can serve an overwritten file stale for a long time (see the comment in `blob.js`).
 - `src/admin/` – the dashboard (lazy-loaded, so visitors never download it). Field inputs are registered by type in `src/admin/fields/index.jsx`.
 - `src/services/contentService.js` – how the public site reads published content.
