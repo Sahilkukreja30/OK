@@ -25,8 +25,12 @@ async function compress(file, maxWidth) {
   bitmap.close();
 
   let blob = await canvasToBlob(canvas);
-  // Safari cannot encode WebP and hands back a PNG, which can be huge for photos: use JPEG for those.
-  if (blob.type !== OUTPUT_TYPE && blob.size > MAX_UPLOAD_BYTES) blob = await canvasToBlob(canvas, 'image/jpeg');
+  // Safari cannot encode WebP and hands back a PNG, about twice the size for photos. A JPEG source has no transparency
+  // to lose, so it stays JPEG; anything else (logos) only switches if the PNG is too big to upload.
+  const fallsBackToPng = blob.type !== OUTPUT_TYPE;
+  if (fallsBackToPng && (file.type === 'image/jpeg' || blob.size > MAX_UPLOAD_BYTES)) {
+    blob = await canvasToBlob(canvas, 'image/jpeg');
+  }
   return { blob, extension: blob.type === OUTPUT_TYPE ? 'webp' : blob.type.split('/')[1] };
 }
 
