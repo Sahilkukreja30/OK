@@ -124,6 +124,9 @@ export const DEFAULT_CLIENT_LOGOS = [
   }
 ];
 
+/** The wall is never empty: built-in logos show while loading, if loading fails, and until logos are imported. */
+export const logosToShow = (cmsLogos) => (cmsLogos.length ? cmsLogos : DEFAULT_CLIENT_LOGOS);
+
 const normalize = (name) => name.trim().toLowerCase();
 
 /** The built-in logos that are not in the CMS yet (matched by name, ignoring case and spacing). */

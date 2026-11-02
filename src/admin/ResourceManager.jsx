@@ -24,6 +24,7 @@ export default function ResourceManager({ resource }) {
   const [loadError, setLoadError] = useState('');
   const [reloadCount, setReloadCount] = useState(0);
   const [importProgress, setImportProgress] = useState(null); // null = idle, else { done, total }
+  const [importError, setImportError] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -52,17 +53,17 @@ export default function ResourceManager({ resource }) {
 
   const runImport = async () => {
     setNotice('');
-    setLoadError('');
+    setImportError('');
     setImportProgress({ done: 0, total: importer.pending(rows) });
     try {
       const count = await importer.run(rows, (done, total) => setImportProgress({ done, total }));
       setNotice(`Imported ${count} logo${count === 1 ? '' : 's'}. Open any of them to edit its link.`);
+      setRows(null);
+      setReloadCount((reloads) => reloads + 1);
     } catch (error) {
-      setLoadError(`${error.message} Nothing changed on the site – press the button again to retry.`);
+      setImportError(`${error.message} Nothing changed on the site – press the button again to retry.`);
     }
     setImportProgress(null);
-    setRows(null);
-    setReloadCount((count) => count + 1);
   };
 
   if (editing) {
@@ -73,7 +74,7 @@ export default function ResourceManager({ resource }) {
     <section>
       <div className="admin-list-head">
         <h2 className="admin-title">{resource.label}</h2>
-        <button type="button" className="admin-btn admin-btn-solid" disabled={needsImport} onClick={() => setEditing({ id: null })}>
+        <button type="button" className="admin-btn admin-btn-solid" disabled={needsImport || Boolean(loadError)} onClick={() => setEditing({ id: null })}>
           + NEW {resource.singular.toUpperCase()}
         </button>
       </div>
@@ -87,6 +88,7 @@ export default function ResourceManager({ resource }) {
         </div>
       )}
 
+      {importError && <p className="admin-banner is-error" role="alert">{importError}</p>}
       {notice && <p className="admin-banner is-success" role="status">{notice}</p>}
       {loadError && <p className="admin-banner is-error" role="alert">{loadError}</p>}
 

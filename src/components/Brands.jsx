@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import useCmsList from '../hooks/useCmsList';
-import { DEFAULT_CLIENT_LOGOS } from '../data/defaultClientLogos';
+import { logosToShow } from '../data/defaultClientLogos';
 import { fetchClientLogos } from '../services/contentService';
 import './Brands.css';
 
 export default function Brands({ onThemeChange }) {
   const sectionRef = useRef(null);
   const [isRevealed, setIsRevealed] = useState(false);
-  const { items: cmsLogos, isLoaded } = useCmsList(fetchClientLogos);
-  const clientLogos = isLoaded && !cmsLogos.length ? DEFAULT_CLIENT_LOGOS : cmsLogos;
+  const { items: cmsLogos } = useCmsList(fetchClientLogos);
+  const clientLogos = logosToShow(cmsLogos);
 
   useEffect(() => {
     const node = sectionRef.current;

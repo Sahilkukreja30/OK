@@ -10,7 +10,8 @@ export default handle(
       const entries = await listPublished(query.resource, { slug: query.slug });
       if (query.slug && !entries.length) throw new HttpError(404, 'Not found.');
 
-      res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=60');
+      // max-age=0: browsers always ask again, so an edit shows after a normal reload; only Vercel's CDN caches (1 minute).
+      res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=60');
       return query.slug ? entries[0] : entries;
     }
   },
