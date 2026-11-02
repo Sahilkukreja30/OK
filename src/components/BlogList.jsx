@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { fetchAllBlogPosts, filterPostsByCountry } from '../services/contentService';
-import usePageMeta from '../hooks/usePageMeta';
+import { fetchAllBlogPosts, filterPostsByCountry } from '../services/contentfulService';
 import './BlogList.css';
 
 function formatDate(dateStr) {
@@ -32,11 +31,6 @@ function calculateReadingTime(post) {
 
 export default function BlogList() {
   const { countryCode, goToBlogPost } = useRouter();
-  usePageMeta({
-    title: 'Blog | CITYREACH',
-    description: 'Insights on websites, e-commerce and paid advertising from the CITYREACH team.',
-    canonical: `${window.location.origin}${window.location.pathname}`
-  });
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 

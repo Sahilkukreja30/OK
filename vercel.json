@@ -1,14 +1,7 @@
 {
-  "functions": {
-    "api/admin/upload.js": { "maxDuration": 30 }
-  },
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "/api/sitemap"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

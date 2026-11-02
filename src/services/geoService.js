@@ -7,7 +7,7 @@
 const STORAGE_KEY = 'cityreach_country_override';
 
 /**
- * Normalizes any country string from stored content or user input into standard codes ('IN' | 'AE' | 'ALL' | 'OTHER')
+ * Normalizes any country string from Contentful or User Input into standard codes ('IN' | 'AE' | 'ALL' | 'OTHER')
  */
 export function normalizeCountryCode(countryStr) {
   if (!countryStr) return 'ALL';

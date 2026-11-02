@@ -1,12 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { GENERAL_ENQUIRY_URL } from '../config/contact';
 import './Footer.css';
 
 export default function Footer({ onThemeChange }) {
   const { routeType, goToHome, goToBlogIndex } = useRouter();
   const footerRef = useRef(null);
 
+  const whatsappUrl =
+    'https://wa.me/919111110422?text=HELLO%2C%20I%20WOULD%20LIKE%20TO%20KNOW%20MORE%20ABOUT%20YOUR%20SERVICES!';
   const instagramUrl = 'https://instagram.com/cityreachdigital';
 
   useEffect(() => {
@@ -111,7 +112,7 @@ export default function Footer({ onThemeChange }) {
 
                 {/* WhatsApp Icon */}
                 <a
-                  href={GENERAL_ENQUIRY_URL}
+                  href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="footer-icon-btn"
@@ -150,7 +151,7 @@ export default function Footer({ onThemeChange }) {
                 BLOGS
               </a>
               <a
-                href={GENERAL_ENQUIRY_URL}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="footer-nav-link"

@@ -21,12 +21,6 @@ export function parseRoute(pathname) {
   }
 
   const first = parts[0].toLowerCase();
-
-  // /admin -> content dashboard (blogs, client logos, case studies)
-  if (first === 'admin') {
-    return { routeType: 'admin', countryCode: null, slug: null, path: '/admin' };
-  }
-
   const second = parts[1]?.toLowerCase();
   const third = parts[2]?.toLowerCase();
 

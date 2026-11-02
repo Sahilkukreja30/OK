@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/RouterContext';
-import { GENERAL_ENQUIRY_URL } from '../config/contact';
 import './Navbar.css';
 
 export default function Navbar({ isLightMode }) {
   const { routeType, goToHome } = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const whatsappUrl =
+    'https://wa.me/919111110422?text=HELLO%2C%20I%20WOULD%20LIKE%20TO%20KNOW%20MORE%20ABOUT%20YOUR%20SERVICES!';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,9 +71,6 @@ export default function Navbar({ isLightMode }) {
               <a href="#services" onClick={handleNavClick('services')} className="nav-btn">
                 SERVICES
               </a>
-              <a href="#case-studies" onClick={handleNavClick('case-studies')} className="nav-btn">
-                CASE STUDIES
-              </a>
               <a href="#work" onClick={handleNavClick('work')} className="nav-btn">
                 OUR WORK
               </a>
@@ -80,7 +79,7 @@ export default function Navbar({ isLightMode }) {
             {/* Contact Us: Stays on the right */}
             <div className="nav-right-anchor">
               <a
-                href={GENERAL_ENQUIRY_URL}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="nav-btn nav-contact-btn"
@@ -124,17 +123,14 @@ export default function Navbar({ isLightMode }) {
           <a href="#services" className="sidebar-link item-2" onClick={handleNavClick('services')}>
             SERVICES
           </a>
-          <a href="#case-studies" className="sidebar-link item-3" onClick={handleNavClick('case-studies')}>
-            CASE STUDIES
-          </a>
-          <a href="#work" className="sidebar-link item-4" onClick={handleNavClick('work')}>
+          <a href="#work" className="sidebar-link item-3" onClick={handleNavClick('work')}>
             OUR WORK
           </a>
           <a
-            href={GENERAL_ENQUIRY_URL}
+            href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="sidebar-link item-5"
+            className="sidebar-link item-4"
             onClick={() => {
               setTimeout(closeMenu, 150);
             }}

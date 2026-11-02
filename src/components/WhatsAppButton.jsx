@@ -1,11 +1,12 @@
 import React from 'react';
-import { GENERAL_ENQUIRY_URL } from '../config/contact';
 import './WhatsAppButton.css';
 
 export default function WhatsAppButton() {
+  const whatsappUrl = "https://wa.me/919111110422?text=HELLO%2C%20I%20WOULD%20LIKE%20TO%20KNOW%20MORE%20ABOUT%20YOUR%20SERVICES!";
+
   return (
     <a
-      href={GENERAL_ENQUIRY_URL}
+      href={whatsappUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="whatsapp-phone-btn"
