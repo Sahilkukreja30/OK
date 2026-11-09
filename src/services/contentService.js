@@ -97,14 +97,20 @@ export async function getRelatedPosts(currentSlug, countryCode = 'ALL', count = 
 
 /* ---------- Home page content: client logos & case studies ---------- */
 
-export async function fetchClientLogos() {
+/** Runs `load` once per page view, so components that need the same list (e.g. the menu and the section) share one request. */
+const oncePerPage = (load) => {
+  let pending;
+  return () => (pending ??= load());
+};
+
+export const fetchClientLogos = oncePerPage(async () => {
   const logos = (await fetchContent('logo')) ?? [];
   return logos
     .filter((logo) => logo.logo?.url)
     .map((logo) => ({ id: logo.id, name: logo.name, url: logo.websiteUrl || null, src: logo.logo.url, type: logo.displayStyle || 'standard' }));
-}
+});
 
-export async function fetchCaseStudies() {
+export const fetchCaseStudies = oncePerPage(async () => {
   const studies = ((await fetchContent('caseStudy')) ?? []).filter((study) => study.image?.url);
   return studies.map((study, index) => ({
     ...study,
@@ -112,4 +118,4 @@ export async function fetchCaseStudies() {
     number: String(index + 1).padStart(2, '0'),
     metrics: Array.isArray(study.metrics) ? study.metrics : []
   }));
-}
+});
