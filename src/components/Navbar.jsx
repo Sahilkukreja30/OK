@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/RouterContext';
 import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { sectionLinks } from '../config/navigation';
+import useCmsList from '../hooks/useCmsList';
+import { fetchCaseStudies } from '../services/contentService';
 import './Navbar.css';
 
 export default function Navbar({ isLightMode }) {
   const { routeType, goToHome } = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { items: caseStudies } = useCmsList(fetchCaseStudies);
+  const links = sectionLinks({ hasCaseStudies: caseStudies.length > 0 });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,18 +68,11 @@ export default function Navbar({ isLightMode }) {
           <nav className="nav-desktop-group">
             {/* Main Links */}
             <div className="nav-main-links">
-              <a href="#home" onClick={handleNavClick('home')} className="nav-btn">
-                HOME
-              </a>
-              <a href="#services" onClick={handleNavClick('services')} className="nav-btn">
-                SERVICES
-              </a>
-              <a href="#case-studies" onClick={handleNavClick('case-studies')} className="nav-btn">
-                CASE STUDIES
-              </a>
-              <a href="#work" onClick={handleNavClick('work')} className="nav-btn">
-                OUR WORK
-              </a>
+              {links.map(({ id, label }) => (
+                <a key={id} href={`#${id}`} onClick={handleNavClick(id)} className="nav-btn">
+                  {label}
+                </a>
+              ))}
             </div>
 
             {/* Contact Us: Stays on the right */}
@@ -118,23 +116,17 @@ export default function Navbar({ isLightMode }) {
         </div>
 
         <nav className="sidebar-nav-list">
-          <a href="#home" className="sidebar-link item-1" onClick={handleNavClick('home')}>
-            HOME
-          </a>
-          <a href="#services" className="sidebar-link item-2" onClick={handleNavClick('services')}>
-            SERVICES
-          </a>
-          <a href="#case-studies" className="sidebar-link item-3" onClick={handleNavClick('case-studies')}>
-            CASE STUDIES
-          </a>
-          <a href="#work" className="sidebar-link item-4" onClick={handleNavClick('work')}>
-            OUR WORK
-          </a>
+          {/* item-N sets each link's slide-in delay, so the numbering follows the visible links */}
+          {links.map(({ id, label }, index) => (
+            <a key={id} href={`#${id}`} className={`sidebar-link item-${index + 1}`} onClick={handleNavClick(id)}>
+              {label}
+            </a>
+          ))}
           <a
             href={GENERAL_ENQUIRY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="sidebar-link item-5"
+            className={`sidebar-link item-${links.length + 1}`}
             onClick={() => {
               setTimeout(closeMenu, 150);
             }}
