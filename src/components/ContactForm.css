@@ -131,10 +131,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.65rem 0.5rem;
+  padding: 0.65rem 0.25rem;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: clamp(0.68rem, 3.1vw, 0.85rem); /* keeps "Social media advertising" on one line on phones */
+  white-space: nowrap;
   text-align: center;
   line-height: 1.2;
   color: rgba(255, 255, 255, 0.8);
@@ -185,4 +186,10 @@
 .contact-submit:hover,
 .contact-submit:focus-visible {
   opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+  .contact-modal {
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
 }
