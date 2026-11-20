@@ -9,22 +9,27 @@ test('the enquiry goes to the same WhatsApp number as the plain link', () => {
   assert.equal(new URL(enquiryLink(answers)).pathname, new URL(GENERAL_ENQUIRY_URL).pathname);
 });
 
-test('the message carries all three answers, trimmed and readable', () => {
-  const text = messageOf(enquiryLink(answers));
-  for (const line of ['Name: Asha', 'Instagram: @asha.bakes', 'Looking for: Website design']) {
-    assert.ok(text.includes(line), line);
-  }
+test('the message is one friendly paragraph with the exact text for each choice', () => {
+  assert.equal(
+    messageOf(enquiryLink(answers)),
+    "Hi CityReach! I'm Asha, and I'm interested in website design for my business. You can find us on Instagram at @asha.bakes. Looking forward to hearing from you!"
+  );
+  assert.equal(
+    messageOf(enquiryLink({ ...answers, instagram: ' https://instagram.com/asha.bakes ', lookingFor: 'Social media advertising' })),
+    "Hi CityReach! I'm Asha, and I'm interested in social media advertising for my business. You can find us on Instagram at https://instagram.com/asha.bakes. Looking forward to hearing from you!"
+  );
 });
 
-test('answers are URL-encoded so & # and newlines survive', () => {
+test('answers are URL-encoded so & # and apostrophes survive', () => {
   const url = enquiryLink({ ...answers, name: 'A&B #1' });
   assert.ok(!url.includes(' ') && !url.includes('\n'));
-  assert.ok(messageOf(url).includes('Name: A&B #1'));
-  assert.ok(!messageOf(enquiryLink(answers)).includes('Business'));
+  assert.ok(messageOf(url).includes("I'm A&B #1,"));
 });
 
-test('a topic line is added when the visitor clicked on a service or case study', () => {
-  assert.ok(messageOf(enquiryLink({ ...answers, topic: 'About Branding.' })).includes('About Branding.'));
+test('a topic is appended as one more sentence, not a list', () => {
+  const text = messageOf(enquiryLink({ ...answers, topic: 'I came across your Branding case study.' }));
+  assert.ok(text.endsWith('Looking forward to hearing from you! I came across your Branding case study.'));
+  assert.ok(!text.includes('\n'));
 });
 
 test('the form offers the two services', () => {

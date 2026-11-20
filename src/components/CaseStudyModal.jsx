@@ -80,7 +80,7 @@ export default function CaseStudyModal({ study, onClose }) {
             href={GENERAL_ENQUIRY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={onContactClick({ topic: `I saw the ${study.title} case study and would like a similar project.` })}
+            onClick={onContactClick({ topic: `I came across your ${study.title} case study.` })}
             className="case-modal-cta"
           >
             START A SIMILAR PROJECT
