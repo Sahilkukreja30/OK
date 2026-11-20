@@ -8,6 +8,7 @@ import Services from './components/Services';
 import CaseStudies from './components/CaseStudies';
 import Brands from './components/Brands';
 import Footer from './components/Footer';
+import { ContactFormProvider } from './components/ContactForm';
 import WhatsAppButton from './components/WhatsAppButton';
 import BlogList from './components/BlogList';
 import BlogPostDetail from './components/BlogPostDetail';
@@ -85,7 +86,9 @@ function MainAppContent() {
 export default function App() {
   return (
     <RouterProvider>
-      <MainAppContent />
+      <ContactFormProvider>
+        <MainAppContent />
+      </ContactFormProvider>
     </RouterProvider>
   );
 }
