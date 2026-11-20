@@ -26,9 +26,12 @@ test('answers are URL-encoded so & # and apostrophes survive', () => {
   assert.ok(messageOf(url).includes("I'm A&B #1,"));
 });
 
-test('a topic is appended as one more sentence, not a list', () => {
+test('a topic is one more sentence before the sign-off, not a list', () => {
   const text = messageOf(enquiryLink({ ...answers, topic: 'I came across your Branding case study.' }));
-  assert.ok(text.endsWith('Looking forward to hearing from you! I came across your Branding case study.'));
+  assert.equal(
+    text,
+    "Hi CityReach! I'm Asha, and I'm interested in website design for my business. You can find us on Instagram at @asha.bakes. I came across your Branding case study. Looking forward to hearing from you!"
+  );
   assert.ok(!text.includes('\n'));
 });
 

@@ -8,10 +8,13 @@ export const GENERAL_ENQUIRY_URL = whatsappLink('HELLO, I WOULD LIKE TO KNOW MOR
 /** Choices for "What are you looking for?" on the contact form. */
 export const LOOKING_FOR_OPTIONS = ['Website design', 'Social media advertising'];
 
-/** WhatsApp link whose message is one friendly paragraph built from the contact form answers; `topic` is an extra sentence about what the visitor clicked on. */
+/** WhatsApp link whose message is one friendly paragraph built from the contact form answers; `topic` is an extra sentence, placed before the sign-off, about what the visitor clicked on. */
 export const enquiryLink = ({ name, instagram, lookingFor, topic }) => {
-  const message =
-    `Hi CityReach! I'm ${name.trim()}, and I'm interested in ${lookingFor.trim().toLowerCase()} for my business. ` +
-    `You can find us on Instagram at ${instagram.trim()}. Looking forward to hearing from you!`;
-  return whatsappLink(topic ? `${message} ${topic.trim()}` : message);
+  const message = [
+    `Hi CityReach! I'm ${name.trim()}, and I'm interested in ${lookingFor.trim().toLowerCase()} for my business.`,
+    `You can find us on Instagram at ${instagram.trim()}.`,
+    ...(topic ? [topic.trim()] : []),
+    'Looking forward to hearing from you!'
+  ];
+  return whatsappLink(message.join(' '));
 };
