@@ -9,13 +9,12 @@ export const GENERAL_ENQUIRY_URL = whatsappLink('HELLO, I WOULD LIKE TO KNOW MOR
 export const LOOKING_FOR_OPTIONS = ['Website design', 'Social media advertising'];
 
 /** WhatsApp link whose message is built from the contact form answers; `topic` adds a line about what the visitor clicked on. */
-export const enquiryLink = ({ name, businessType, instagram, lookingFor, topic }) => {
+export const enquiryLink = ({ name, instagram, lookingFor, topic }) => {
   const lines = [
     'Hello CityReach! I would like to know more about your services.',
     ...(topic ? [topic] : []),
     '',
     `Name: ${name.trim()}`,
-    `Business: ${businessType.trim()}`,
     `Instagram: ${instagram.trim()}`,
     `Looking for: ${lookingFor}`
   ];

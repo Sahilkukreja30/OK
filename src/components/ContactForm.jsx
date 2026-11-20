@@ -89,7 +89,6 @@ function ContactFormModal({ topic, onClose }) {
     const data = new FormData(event.currentTarget);
     const url = enquiryLink({
       name: data.get('name'),
-      businessType: data.get('businessType'),
       instagram: data.get('instagram'),
       lookingFor: data.get('lookingFor'),
       topic
@@ -130,11 +129,6 @@ function ContactFormModal({ topic, onClose }) {
           </label>
 
           <label className="contact-field">
-            <span className="contact-label">What type of business do you own</span>
-            <input name="businessType" type="text" required pattern={NOT_BLANK} maxLength={150} />
-          </label>
-
-          <label className="contact-field">
             <span className="contact-label">Business Instagram username or URL</span>
             <input
               name="instagram"
@@ -160,7 +154,7 @@ function ContactFormModal({ topic, onClose }) {
           </fieldset>
 
           <button type="submit" className="contact-submit">
-            Continue on WhatsApp
+            Submit
           </button>
         </form>
       </div>
