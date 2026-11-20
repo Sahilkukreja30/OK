@@ -125,7 +125,7 @@ export default function Services({ onThemeChange }) {
                         href={GENERAL_ENQUIRY_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={onContactClick({ topic: `I'd like to start a project around ${service.title}.` })}
+                        onClick={onContactClick({ topic: `I'd like to start a project around ${service.title.toLowerCase()}.` })}
                         className="start-project-btn"
                       >
                         START YOUR PROJECT
