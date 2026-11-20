@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { useRouter } from '../router/RouterContext';
 import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { useContactForm } from './ContactForm';
 import './Footer.css';
 
 export default function Footer({ onThemeChange }) {
   const { routeType, goToHome, goToBlogIndex } = useRouter();
+  const { onContactClick } = useContactForm();
   const footerRef = useRef(null);
 
   const instagramUrl = 'https://instagram.com/cityreachdigital';
@@ -114,6 +116,7 @@ export default function Footer({ onThemeChange }) {
                   href={GENERAL_ENQUIRY_URL}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={onContactClick()}
                   className="footer-icon-btn"
                   aria-label="WhatsApp"
                 >
@@ -153,6 +156,7 @@ export default function Footer({ onThemeChange }) {
                 href={GENERAL_ENQUIRY_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={onContactClick()}
                 className="footer-nav-link"
               >
                 CONTACT US

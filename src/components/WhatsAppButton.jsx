@@ -1,13 +1,17 @@
 import React from 'react';
 import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { useContactForm } from './ContactForm';
 import './WhatsAppButton.css';
 
 export default function WhatsAppButton() {
+  const { onContactClick } = useContactForm();
+
   return (
     <a
       href={GENERAL_ENQUIRY_URL}
       target="_blank"
       rel="noopener noreferrer"
+      onClick={onContactClick()}
       className="whatsapp-phone-btn"
       aria-label="Contact on WhatsApp"
     >

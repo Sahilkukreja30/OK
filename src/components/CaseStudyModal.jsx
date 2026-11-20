@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { whatsappLink } from '../config/contact';
+import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { useContactForm } from './ContactForm';
 import './CaseStudies.css';
 
 const STORY_BLOCKS = [
@@ -11,6 +12,7 @@ const STORY_BLOCKS = [
 
 export default function CaseStudyModal({ study, onClose }) {
   const closeRef = useRef(null);
+  const { onContactClick } = useContactForm();
 
   useEffect(() => {
     const onKeyDown = (event) => event.key === 'Escape' && onClose();
@@ -27,7 +29,6 @@ export default function CaseStudyModal({ study, onClose }) {
   }, [onClose]);
 
   const storyBlocks = STORY_BLOCKS.filter(({ key }) => study[key]);
-  const startProjectUrl = whatsappLink(`HELLO, I SAW THE ${study.title.toUpperCase()} CASE STUDY AND WOULD LIKE A SIMILAR PROJECT!`);
 
   // Portal: the page's curtain layer is its own stacking context, which would keep the popup under the navbar.
   return createPortal(
@@ -75,7 +76,13 @@ export default function CaseStudyModal({ study, onClose }) {
         </div>
 
         <footer className="case-modal-footer">
-          <a href={startProjectUrl} target="_blank" rel="noopener noreferrer" className="case-modal-cta">
+          <a
+            href={GENERAL_ENQUIRY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onContactClick({ topic: `I saw the ${study.title} case study and would like a similar project.` })}
+            className="case-modal-cta"
+          >
             START A SIMILAR PROJECT
           </a>
           {study.projectUrl && (

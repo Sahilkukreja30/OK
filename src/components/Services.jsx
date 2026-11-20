@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { whatsappLink } from '../config/contact';
+import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { useContactForm } from './ContactForm';
 import './Services.css';
 
 const servicesData = [
@@ -49,6 +50,7 @@ const servicesData = [
 
 export default function Services({ onThemeChange }) {
   const [openServiceId, setOpenServiceId] = useState(null);
+  const { onContactClick } = useContactForm();
   const sectionRef = useRef(null);
 
   useEffect(() => {
@@ -81,10 +83,6 @@ export default function Services({ onThemeChange }) {
     setOpenServiceId(openServiceId === id ? null : id);
   };
 
-  const getWhatsAppUrl = (title) => {
-    const msg = `HELLO, I WOULD LIKE TO START A PROJECT REGARDING ${title}!`;
-    return whatsappLink(msg);
-  };
 
   return (
     <section ref={sectionRef} id="services" className="services-section">
@@ -124,9 +122,10 @@ export default function Services({ onThemeChange }) {
                     {/* Minimal Shimmer Button: START YOUR PROJECT */}
                     <div className="service-btn-wrap">
                       <a
-                        href={getWhatsAppUrl(service.title)}
+                        href={GENERAL_ENQUIRY_URL}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={onContactClick({ topic: `I would like to start a project regarding ${service.title}.` })}
                         className="start-project-btn"
                       >
                         START YOUR PROJECT

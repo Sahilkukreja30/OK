@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '../router/RouterContext';
 import { GENERAL_ENQUIRY_URL } from '../config/contact';
+import { useContactForm } from './ContactForm';
 import { sectionLinks } from '../config/navigation';
 import useCmsList from '../hooks/useCmsList';
 import { fetchCaseStudies } from '../services/contentService';
@@ -8,6 +9,7 @@ import './Navbar.css';
 
 export default function Navbar({ isLightMode }) {
   const { routeType, goToHome } = useRouter();
+  const { onContactClick } = useContactForm();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { items: caseStudies } = useCmsList(fetchCaseStudies);
@@ -81,6 +83,7 @@ export default function Navbar({ isLightMode }) {
                 href={GENERAL_ENQUIRY_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={onContactClick()}
                 className="nav-btn nav-contact-btn"
               >
                 CONTACT US
@@ -127,7 +130,8 @@ export default function Navbar({ isLightMode }) {
             target="_blank"
             rel="noopener noreferrer"
             className={`sidebar-link item-${links.length + 1}`}
-            onClick={() => {
+            onClick={(event) => {
+              onContactClick()(event);
               setTimeout(closeMenu, 150);
             }}
           >
