@@ -160,7 +160,7 @@ function ContactFormModal({ topic, onClose }) {
           </fieldset>
 
           <button type="submit" className="contact-submit">
-            CONTINUE ON WHATSAPP
+            Continue on WhatsApp
           </button>
         </form>
       </div>

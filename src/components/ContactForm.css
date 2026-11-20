@@ -1,5 +1,5 @@
 /* ==========================================================================
-   CONTACT POPUP: the "Tell us about your business" form. Black & white, like the case study popup.
+   CONTACT POPUP: the "Tell us about your business" form. Minimal, black & white.
    ========================================================================== */
 
 .contact-modal-backdrop {
@@ -7,21 +7,24 @@
   inset: 0;
   z-index: 1000000; /* above the navbar (99999) and WhatsApp button (99998), below the preloader */
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: clamp(0.75rem, 4vw, 3rem);
-  background-color: rgba(0, 0, 0, 0.88);
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.82);
   overflow-y: auto;
   animation: contact-modal-fade 0.25s ease;
 }
 
 .contact-modal {
+  position: relative;
   width: 100%;
-  max-width: 520px;
+  max-width: 440px;
   margin: auto;
-  background-color: #000000;
+  padding: 2rem 1.75rem 1.75rem;
+  background-color: #0a0a0a;
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
   animation: contact-modal-rise 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -30,105 +33,124 @@
 }
 
 @keyframes contact-modal-rise {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(16px); }
 }
 
 .contact-modal-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  margin-bottom: 1.5rem;
+  padding-right: 1.5rem; /* room for the close button */
 }
 
 .contact-modal-title {
-  font-size: clamp(1.2rem, 4vw, 1.6rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-size: 1.15rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.3;
 }
 
 .contact-modal-close {
-  flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
   background: transparent;
-  color: #ffffff;
-  font-size: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1.1rem;
+  line-height: 1;
+  border: 0;
+  border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .contact-modal-close:hover,
 .contact-modal-close:focus-visible {
-  background-color: #ffffff;
-  color: #000000;
+  color: #ffffff;
 }
 
 .contact-form {
   display: flex;
   flex-direction: column;
-  gap: 1.35rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
+  gap: 1.25rem;
 }
 
 .contact-field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
   border: 0;
   min-width: 0;
 }
 
 .contact-label {
   padding: 0;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .contact-field input[type='text'] {
   width: 100%;
-  padding: 0.85rem 0.9rem;
+  padding: 0.4rem 0 0.55rem;
   background: transparent;
   color: #ffffff;
   font-size: 16px; /* 16px stops iOS from zooming the page on focus */
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0;
   transition: border-color 0.2s ease;
 }
 
 .contact-field input[type='text']::placeholder {
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.contact-field input[type='text']:focus-visible {
+.contact-field input[type='text']:focus {
   outline: none;
-  border-color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
+/* "What are you looking for?": two pills; the native radios stay underneath for keyboards and screen readers. */
 .contact-choices {
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.contact-choices .contact-label {
+  grid-column: 1 / -1;
+  margin-bottom: 0.2rem;
 }
 
 .contact-choice {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.85rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: 0.95rem;
+  justify-content: center;
+  padding: 0.65rem 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-align: center;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.8);
   cursor: pointer;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-.contact-choice:hover,
-.contact-choice:has(input:checked) {
+.contact-choice:hover {
   border-color: #ffffff;
+}
+
+.contact-choice:has(input:checked) {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #000000;
+  font-weight: 500;
 }
 
 .contact-choice:has(input:focus-visible) {
@@ -137,30 +159,25 @@
 }
 
 .contact-choice input {
-  appearance: none;
-  flex-shrink: 0;
-  width: 1.1rem;
-  height: 1.1rem;
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  transition: background-color 0.2s ease;
-}
-
-.contact-choice input:checked {
-  background-color: #ffffff;
-  box-shadow: inset 0 0 0 3px #000000;
+  cursor: pointer;
 }
 
 .contact-submit {
-  margin-top: 0.25rem;
-  padding: 1rem 1.75rem;
+  margin-top: 0.4rem;
+  padding: 0.9rem 1.5rem;
   background-color: #ffffff;
   color: #000000;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   border: 0;
+  border-radius: 999px;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
